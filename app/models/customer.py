@@ -14,7 +14,7 @@ class Customer(db.Model):
         customer_dict["id"] = self.id
         customer_dict["name"] = self.name
         customer_dict["postal_code"]=self.postal_code
-        customer_dict["phone_number"] = self.phone_number
+        customer_dict["phone"] = self.phone_number
         
         return customer_dict
 
@@ -24,8 +24,6 @@ class Customer(db.Model):
         new_customer = Customer(
             name=customer_data["name"],
             postal_code=customer_data["postal_code"],
-            phone_number=customer_data["phone_number"],
-            register_at=customer_data["register_at"],
-            videos_checked_out_count=customer_data["videos_checked_out_count"]     
+            phone_number=customer_data["phone"],
         )
         return new_customer
