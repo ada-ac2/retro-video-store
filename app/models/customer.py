@@ -4,8 +4,8 @@ class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     postal_code = db.Column(db.String, nullable=False)
-    phone_number = db.Column(db.String, nullable=False)
-    registered_at = db.Column(db.DateTime, nullable=False)
+    phone = db.Column(db.String, nullable=False)
+    registered_at = db.Column(db.DateTime)
     # videos_checked_out = db.Column(db.Integer)
 
     def to_dict(self):
@@ -15,7 +15,23 @@ class Customer(db.Model):
         return {
             "id": self.id,
             "name": self.name,
-            "postal code": self.postal_code,
-            "phone number": self.phone_number,
-            "registered at": self.registered_at,
+            "postal_code": self.postal_code,
+            "phone": self.phone,
+            "registered_at": self.registered_at,
         }
+    
+    def retrieve_by_id(customer_id):
+        """
+        Returns customer instance given customer id.
+        """
+        return Customer.query.get(customer_id)
+    
+    def create_from_dict(dict):
+        """
+        Creates customer instance from dict values.
+        """
+        return Customer(
+            name=dict["name"],
+            postal_code=dict["postal_code"],
+            phone=dict["phone"]
+        )
