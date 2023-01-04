@@ -16,8 +16,11 @@ class Video(db.Model):
         return video_dict
 
     @classmethod
-    def from_dict(cls,video_data):
-        new_video = Video(title=video_data["title"], release_date=video_data["release_date"],
-        total_inventory=video_data["total_inventory"])
+    def from_dict(cls, video_data):
+        new_video = Video(
+            title=video_data["title"], 
+            release_date=video_data["release_date"],
+            total_inventory=video_data["total_inventory"]
+        )
         
         return new_video
