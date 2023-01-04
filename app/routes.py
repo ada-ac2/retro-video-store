@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, make_response, request, abort
 from app import db
 from app.models.customer import Customer
+from app.models.video import Video
 
 customers_bp = Blueprint("customers_bp", __name__, url_prefix="/customers")
 videos_bp = Blueprint("videos_bp", __name__, url_prefix="/videos")
@@ -90,3 +91,31 @@ def delete_one_customer(customer_id):
     return {"id": customer.id}
 
 
+# --------------------------------
+# ----------- VIDEOS -------------
+# --------------------------------
+
+@videos_bp.route("", methods=["GET"])
+def get_all_videos():
+    videos_response = []
+    videos = Video.query.all()
+
+    for video in videos:
+        videos_response.append({
+            "id": video.id,
+            "title": video.title,
+            "release_date": video.release_date,
+            "total_inventory": video.total_inventory
+        })
+    return jsonify(videos_response)
+
+@videos_bp.route("/<video_id>", methods=["GET"])
+def get_one_video(video_id):
+    video = validate_model(Video, video_id)
+
+    return {
+        "id": video.id,
+        "title": video.title,
+        "release_date": video.release_date,
+        "total_inventory": video.total_inventory
+    }
