@@ -1,6 +1,6 @@
 from app import db
 from app.models.customer import Customer
-import app.models.model_helpers
+from app.models.model_helpers import *
 from flask import Blueprint, jsonify, abort, make_response, request
 
 customers_bp = Blueprint("customers_bp", __name__, url_prefix="/customers")
@@ -15,7 +15,7 @@ def create_customer():
         phone = customer_data["phone_number"],
         videos_checked_out_count = 0
     )
-
+    
     db.session.add(new_customer)
     db.session.commit()
 
@@ -39,3 +39,15 @@ def get_customers():
         })
     
     return jsonify(customer_response)
+
+@customers_bp.route("/<customer_id>", methods=["GET"])
+def get_one_customer(customer_id):
+    customer = validate_model(Customer, customer_id)
+    return jsonify({
+        "id": customer.id,
+        "name": customer.name,
+        "registered_at": customer.registered_at,
+        "postal_code": customer.postal_code,
+        "phone": customer.phone,
+        "videos_checked_out_count": customer.videos_checked_out_count
+    })
