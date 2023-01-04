@@ -60,6 +60,25 @@ def create_one_customer():
     db.session.commit()
     return make_response({"id": customer.id}, 201)
 
+@customers_bp.route("/<customer_id>", methods=["PUT"])
+def update_one_customer(customer_id):
+    customer = validate_model(Customer, customer_id)
+    request_body = request.get_json()
+    try:
+        customer.name = request_body["name"]
+        customer.postal_code = request_body["postal_code"]
+        customer.phone = request_body["phone"]
+    except KeyError as keyerror:
+        abort(make_response({"details":f"Request body must include {keyerror.args[0]}."}, 400))
+
+    db.session.commit()
+    return {
+        "id" : customer.id,
+        "name": customer.name,
+        "postal_code": customer.postal_code,
+        "phone": customer.phone,
+        "register_at": customer.register_at, 
+    }
 
 
 
