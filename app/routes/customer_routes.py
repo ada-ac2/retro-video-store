@@ -52,3 +52,22 @@ def delete_customer(customer_id):
     db.session.commit()
 
     return make_response(jsonify(customer.to_dict()), 200)
+
+#update route
+@customers_bp.route("/<customer_id>", methods=["PUT"])
+def update_customer(customer_id):
+    customer=validate_model(Customer, customer_id)
+    
+    request_body = request.get_json()
+    try:
+
+        customer.name=request_body["name"]
+        customer.phone=request_body["phone"]
+        customer.postal_code=request_body["postal_code"]
+    except KeyError as key_error:
+        abort(make_response({"details":f"Request body must include {key_error.args[0]}."}, 400))
+
+    db.session.add(customer)
+    db.session.commit()
+
+    return make_response(customer.to_dict(), 200)
