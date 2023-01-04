@@ -44,4 +44,22 @@ def get_one_customer(customer_id):
         "videos_checked_out_count":customer.videos_checked_out_count
     }
 
+@customers_bp.route("", methods=["POST"])
+def create_one_customer():
+    request_body = request.get_json()
+    try:
+        customer = Customer(
+            name = request_body["name"],
+            postal_code = request_body["postal_code"],
+            phone = request_body["phone"],
+        )
+    except KeyError as keyerror:
+        abort(make_response({"details":f"Request body must include {keyerror.args[0]}."}, 400))
+
+    db.session.add(customer)
+    db.session.commit()
+    return make_response({"id": customer.id}, 201)
+
+
+
 
