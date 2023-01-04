@@ -33,7 +33,7 @@ def get_one_video_by_id(video_id):
 @videos_bp.route("", methods=["POST"])
 def create_a_video():
     request_body = request.get_json()
-      
+    
     new_video = Video.from_dict(request_body)
     db.session.add(new_video)
     db.session.commit()

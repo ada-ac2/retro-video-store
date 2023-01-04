@@ -5,7 +5,7 @@ class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String)
     postal_code = db.Column(db.String)
-    phone_number = db.Column(db.String)
+    phone = db.Column(db.String)
     register_at = db.Column(db.DateTime, default=datetime.datetime.now())
     videos_checked_out_count = db.Column(db.Integer)
     
@@ -14,7 +14,7 @@ class Customer(db.Model):
         customer_dict["id"] = self.id
         customer_dict["name"] = self.name
         customer_dict["postal_code"]=self.postal_code
-        customer_dict["phone"] = self.phone_number
+        customer_dict["phone"] = self.phone
         
         return customer_dict
 
@@ -24,6 +24,6 @@ class Customer(db.Model):
         new_customer = Customer(
             name=customer_data["name"],
             postal_code=customer_data["postal_code"],
-            phone_number=customer_data["phone"],
+            phone=customer_data["phone"],
         )
         return new_customer
