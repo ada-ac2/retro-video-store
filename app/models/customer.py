@@ -13,6 +13,7 @@ class Customer(db.Model):
         customer_dict = {}
         customer_dict["id"] = self.id
         customer_dict["name"] = self.name
+        customer_dict["registered_at"]: self.register_at
         customer_dict["postal_code"]=self.postal_code
         customer_dict["phone"] = self.phone
         

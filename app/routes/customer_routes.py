@@ -42,3 +42,13 @@ def get_all_customers():
 def get_one_customer(customer_id):
     customer = validate_model(Customer, customer_id)
     return customer.to_dict()
+
+#route to delete
+@customers_bp.route("/<customer_id>", methods=["DELETE"])
+def delete_customer(customer_id):
+    customer = validate_model(Customer, customer_id)
+
+    db.session.delete(customer)
+    db.session.commit()
+
+    return make_response(jsonify(customer.to_dict()), 200)
