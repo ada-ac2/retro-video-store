@@ -25,6 +25,7 @@ class Rental(db.Model):
         rental_dict["customer_id"] = self.customer_id
         rental_dict["video_id"] = self.video_id
         rental_dict["checkout_date"] = self.checkout_date
+        rental_dict["status"] = self.status
         rental_dict["due_date"] = self.due_date
 
         return rental_dict
