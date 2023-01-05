@@ -25,21 +25,14 @@ class Customer(db.Model):
         Updates an attr given a *modifiable attr and value. 
         * modifiable attrs: name, postal_code, phone
         """
-        if attr == "name":
+        if attr == "name" and val.isalpha():
             self.name = val
-        elif attr == "postal_code":
+        elif attr == "postal_code" and not val.isalpha():
             self.postal_code = val
-        elif attr == "phone":
+        elif attr == "phone" and not val.isalpha():
             self.phone = val
-        else:
-            return False
-        return True
-    
-    def retrieve_by_id(customer_id):
-        """
-        Returns customer instance given customer id.
-        """
-        return Customer.query.get(customer_id)
+        
+        return False
     
     def create_from_dict(dict):
         """
