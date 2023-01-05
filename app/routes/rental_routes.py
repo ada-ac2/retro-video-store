@@ -20,13 +20,15 @@ def rental_response(rental,customer,video):
 @rentals_bp.route("/check-out", methods=["POST"]) 
 def video_checkout():
     request_body=request.get_json()
-    customer = validate_model(Customer, request_body["customer_id"])
-    video = validate_model(Video, request_body["video_id"])
-    video.total_inventory -=1
-    customer.videos_checked_out_count +=1
     #put into rental model as to_dictionary
     try:
+        customer = validate_model(Customer, request_body["customer_id"])
+        video = validate_model(Video, request_body["video_id"])
+        if video.total_inventory == 0:
+            abort(make_response({"message":"Could not perform checkout"}, 400))
         new_rental=Rental.from_dict(request_body)
+        video.total_inventory -=1
+        customer.videos_checked_out_count +=1
 
     except KeyError as key_error:
         abort(make_response({"details":f"Request body must include {key_error.args[0]}."}, 400))
