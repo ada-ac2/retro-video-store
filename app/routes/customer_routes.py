@@ -12,7 +12,7 @@ def create_customer():
     new_customer = Customer(
         name = customer_data["name"],
         postal_code = customer_data["postal_code"],
-        phone = customer_data["phone_number"],
+        phone = customer_data["phone"],
         videos_checked_out_count = 0
     )
     
