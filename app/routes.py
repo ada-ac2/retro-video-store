@@ -2,8 +2,6 @@ from app import db
 from flask import Blueprint, jsonify, make_response, abort, request
 from .models.customer import Customer
 
-# initialize customers blueprint
-customers_bp = Blueprint("customers", __name__, url_prefix="/customers")
 
 # ~~~~~~ validation checkers ~~~~~~
 def validate_customer_id(customer_id):
@@ -46,6 +44,9 @@ def validate_post_request(request):
             "message": "name, postal_code and phone required"
         }, 400))
 
+# ~~~~~~ initialize customers blueprint ~~~~~~
+customers_bp = Blueprint("customers", __name__, url_prefix="/customers")
+
 # ~~~~~~ customers endpoints ~~~~~~
 @customers_bp.route("", methods=["GET"])
 def display_all_customers():
@@ -69,14 +70,12 @@ def create_a_customer():
     new_customer = Customer.create_from_dict(request_body)
     db.session.add(new_customer)
     db.session.commit()
-    return make_response({
-        "message": "customer has been successfully created"
-    }, 201)
+    return make_response({"id": new_customer.id}, 201)
 
 @customers_bp.route("/<customer_id>", methods=["PUT"])
 def modify_a_customer(customer_id):
-    request_body = request.get_json()
     customer = validate_customer_id(customer_id)
+    request_body = request.get_json()
     # unpack request body items
     for key, val in request_body.items():
         # update customer data
@@ -87,9 +86,7 @@ def modify_a_customer(customer_id):
                 "message": f"{key} is not a modifiable data type for customers"
             }, 400))
     db.session.commit()
-    return make_response(
-        {"message": f"Customer #{customer_id} successfully updated"}, 200
-    )
+    return make_response(customer.to_dict(), 200)
 
 @customers_bp.route("/<customer_id>", methods=["DELETE"])
 def delete_a_customer(customer_id):
