@@ -20,7 +20,10 @@ def validate_request_body(cls, request_body):
 
     attributes = cls.__table__.columns.keys()
     attributes.remove("id")
-    
+    if "registered_at" in attributes:
+        attributes.remove("registered_at")
+    if "videos_checked_out_count" in attributes:
+        attributes.remove("videos_checked_out_count")
     # check whether there are missing attributes in the request body
     for attribute in attributes:
         if attribute not in request_body.keys():
