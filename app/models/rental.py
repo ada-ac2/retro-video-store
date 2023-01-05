@@ -18,3 +18,22 @@ class Rental(db.Model):
     status = db.Column(db.Enum(RentalStatus), default=RentalStatus.CHECKOUT)
     checkout_date = db.Column(db.DateTime, default=datetime.datetime.now())
     due_date = db.Column(db.DateTime, default=(datetime.date.today()+datetime.timedelta(days=7)))
+
+    def to_dict(self):
+        rental_dict = {}
+        rental_dict["id"] = self.id
+        rental_dict["customer_id"] = self.customer_id
+        rental_dict["video_id"] = self.video_id
+        rental_dict["checkout_date"] = self.checkout_date
+        rental_dict["due_date"] = self.due_date
+
+        return rental_dict
+    
+    @classmethod
+    def from_dict(cls, rental_data):
+        new_rental = Rental(
+            customer_id=rental_data["customer_id"], 
+            video_id=rental_data["video_id"]
+        )
+        
+        return new_rental
