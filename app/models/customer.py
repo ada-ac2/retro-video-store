@@ -1,13 +1,14 @@
 from app import db
-import datetime
+from datetime import datetime, timedelta
 
 class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False)
-    registered_at = db.Column(db.DateTime, default=datetime.datetime.utcnow())
+    registered_at = db.Column(db.DateTime, default=datetime.utcnow())
     postal_code = db.Column(db.String, nullable=False)
     phone = db.Column(db.String, nullable=False)
     videos_checked_out_count = db.Column(db.Integer)
+    # customer_rentals = db.relationship("Rental", back_populates="customer_rental")
 
 
     def to_dict(self):

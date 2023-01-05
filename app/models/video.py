@@ -1,11 +1,12 @@
 from app import db
-import datetime
+from datetime import datetime, timedelta
 
 class Video(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String, nullable=False)
-    release_date = db.Column(db.DateTime, default=datetime.datetime.utcnow())
+    release_date = db.Column(db.DateTime, default=datetime.utcnow())
     total_inventory = db.Column(db.Integer, nullable=False)
+    # video_rentals = db.relationship("Rental", back_populates="video_rental")
 
     def to_dict(self):
         
