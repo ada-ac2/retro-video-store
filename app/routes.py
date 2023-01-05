@@ -119,3 +119,20 @@ def get_one_video(video_id):
         "release_date": video.release_date,
         "total_inventory": video.total_inventory
     }
+
+@videos_bp.route("", methods=["POST"])
+def create_one_video():
+    request_body = request.get_json()
+    try:
+        video = Video(
+            title = request_body["title"],
+            release_date = request_body["release_date"],
+            total_inventory = request_body["total_inventory"]
+        )
+    except KeyError as keyerror:
+        abort(make_response({"details":f"Request body must include {keyerror.args[0]}."}, 400))
+    
+    db.session.add(video)
+    db.session.commit()
+
+    return make_response({"id":video.id, "title":video.title, "total_inventory":video.total_inventory}, 201)
