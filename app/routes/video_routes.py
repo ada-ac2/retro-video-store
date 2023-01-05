@@ -67,7 +67,8 @@ def create_video():
     db.session.add(new_video)
     db.session.commit()
     db.session.refresh(new_video)
-    return make_response(jsonify(f"Video {new_video.title} successfully created"), 201)
+    return new_video.to_dict(), 201
+    # return make_response(jsonify(f"Video {new_video.title} successfully created"), 201)
 
 
 # PUT /videos/<id>
@@ -86,8 +87,11 @@ def update_video(id):
     video.title = request_body["title"]
     video.release_date = request_body["release_date"]
     video.total_inventory = request_body["total_inventory"]
+    db.session.commit()
+    db.session.refresh(video)
     #video.available_inventory = request_body["available_inventory"]
-    return make_response(jsonify(f"Video #{id} successfully updated"))
+    #return make_response(jsonify(f"Video #{id} successfully updated"))
+    return video.to_dict()
 
 
 # DELETE /videos/<id>
@@ -98,4 +102,5 @@ def delete_video(id):
     video = validate_video(Video, id)
     db.session.delete(video)
     db.session.commit()
-    return make_response(jsonify(f"Video #{id} successfully deleted"))
+    # return make_response(jsonify(f"Video #{id} successfully deleted"))
+    return video.to_dict()
