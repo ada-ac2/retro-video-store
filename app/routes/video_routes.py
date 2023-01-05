@@ -1,6 +1,6 @@
 from app import db
 from app.models.video import Video
-from app.routes.customer_routes import validate_model, validate_post_request, validate_put_response
+from app.routes.customer_routes import validate_model
 from flask import Blueprint, jsonify, abort, make_response, request
 
 video_bp = Blueprint("video_bp", __name__, url_prefix="/videos")
