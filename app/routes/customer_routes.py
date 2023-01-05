@@ -87,19 +87,41 @@ def register_customer():
 
 # Update the customer info by id (PUT /customer/<id>)
 # Return sussess message "Customer {id} info successfully udated"
-@customer_bp.route("/<customer_id>",methods=["PUT"] )
+# @customer_bp.route("/<customer_id>",methods=["PUT"] )
+# def update_customer(customer_id):
+#     customer = validate_model(Customer, customer_id)
+#     request_body = request.get_json()
+#     check_invalid_dict = validate_input(request_body)
+#     if check_invalid_dict:
+#         return abort(make_response(jsonify(check_invalid_dict), 400))
+#     customer.name = request_body["name"]
+#     customer.postal_code = request_body["postal_code"]
+#     customer.phone = request_body["phone"]
+
+#     db.session.commit()
+#     db.session.refresh(customer)
+
+#     return customer.to_dict()
+
+
 def update_customer(customer_id):
     customer = validate_model(Customer, customer_id)
-    request_body = validate_input(request.get_json())
+    
+    check_invalid_dict = validate_input(customer)
+
+    if check_invalid_dict:
+        abort(make_response(jsonify(check_invalid_dict), 400))
 
     customer.name = request_body["name"]
     customer.postal_code = request_body["postal_code"]
     customer.phone = request_body["phone"]
-    customer.registered_at = request_body["registered_at"]
+    #customer.registered_at = request_body["registered_at"]
     customer.videos_checked_out_count = request_body["videos_checked_out_count"]    
     
     db.session.commit()
-    return make_response(jsonify(f"Customer {customer_id} successfully updated"), 200)   
+    db.session.refresh(customer)
+
+    return customer.to_dict(), 200 
 
 # Delete the customer info by id (DELETE /customer/<id>)
 # Return sussess message "Customer {id} info successfully udated"
