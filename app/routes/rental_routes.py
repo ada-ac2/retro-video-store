@@ -2,10 +2,22 @@ from app import db
 from app.models.rental import Rental
 from app.models.video import Video
 from app.models.customer import Customer
-from app.routes.video_routes import validate_model
 from flask import Blueprint, jsonify, abort, make_response, request
 
 rentals_bp = Blueprint("rentals_bp", __name__, url_prefix="/rentals")
+
+def validate_model(cls, model_id):
+    try:
+        model_id = int(model_id)
+    except:
+        abort(make_response({"message":f"{cls.__name__} {model_id} invalid"}, 400))
+
+    model = cls.query.get(model_id)
+
+    if not model:
+        abort(make_response({"message":f"{cls.__name__} {model_id} was not found"}, 404))
+
+    return model
 
 #helper query function:
 def query_rentals(filters):
@@ -76,3 +88,4 @@ def checkin_video():
     db.session.commit()
 
     return make_response(rental_response(rental,customer,video), 200)
+

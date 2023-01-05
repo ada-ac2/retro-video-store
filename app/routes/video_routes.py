@@ -1,6 +1,10 @@
 from app import db
 from app.models.video import Video
+from app.models.rental import Rental
+from app.models.customer import Customer
+from app.routes.rental_routes import query_rentals
 from flask import Blueprint, jsonify, abort, make_response, request
+
 
 videos_bp = Blueprint("videos_bp", __name__, url_prefix="/videos")
 
@@ -66,3 +70,15 @@ def delete_a_video(video_id):
     db.session.commit()
 
     return make_response(jsonify(video.to_dict()), 200)
+
+@videos_bp.route("/<video_id>/rentals", methods=["GET"])
+def get_rentals_by_video(video_id):
+    video = validate_model(Video, video_id)
+    query = query_rentals({"video_id":video.id, "status": Rental.RentalStatus.CHECKOUT})
+    response = []
+    for rental in query:
+        customer = validate_model(Customer, rental.customer_id)
+        rental_info = customer.to_dict()
+        rental_info["due_date"] = rental.due_date
+        response.append(rental_info)
+    return jsonify(response)
