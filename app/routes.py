@@ -5,8 +5,8 @@ from app.models.customer import Customer
 from app.models.rental import Rental
 
 customers_bp = Blueprint("customer_bp", __name__, url_prefix="/customers")
-videos_bp = Blueprint("video_bp", __name__, url_prefix="/video")
-rentals_bp = Blueprint("rental_bp", __name__, url_prefix="/rental")
+videos_bp = Blueprint("video_bp", __name__, url_prefix="/videos")
+rentals_bp = Blueprint("rental_bp", __name__, url_prefix="/rentals")
 
 #--------------------------Helper Functions----------------------------------------------
 def validate_model(cls, model_id):
@@ -23,8 +23,7 @@ def validate_model(cls, model_id):
 
 def validate_request_body(request_body): 
 
-    if "name" not in request_body or "phone" not in request_body or "registered_at" \
-        not in request_body or "postal_code" not in request_body:
+    if "name" not in request_body or "phone" not in request_body or "postal_code" not in request_body:
         abort(make_response("Invalid Request", 400))
 
 #validation for Video route
@@ -87,7 +86,6 @@ def update_customer_by_id(customer_id):
     validate_request_body(request_body)
 
     customer.name = request_body["name"]
-    customer.registered_at = request_body["registered_at"]
     customer.postal_code = request_body["postal_code"]
     customer.phone = request_body["phone"]
 
@@ -117,10 +115,11 @@ def create_one_video():
 
     new_video = Video.from_dict(request_body)
 
+    print(new_video.title)
     db.session.add(new_video)
     db.session.commit()
 
-    return make_response(jsonify(f"Video: {new_video.title} created successfully.", 201))
+    return make_response(jsonify(f"Video: {new_video.title} created successfully."), 201)
 
 @videos_bp.route("", methods=["GET"])
 def read_all_videos():
@@ -132,7 +131,7 @@ def read_all_videos():
     video_response = [] 
     for video in videos: 
         video_response.append(video.to_dict())    #use to_dict function to make code more readable
-    print(video_response)
+    #print(video_response)
     return jsonify(video_response)
 
 @videos_bp.route("/<video_id>", methods=["GET"])
