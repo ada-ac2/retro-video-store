@@ -33,6 +33,7 @@ class Customer(db.Model):
             self.phone = val
         else:
             return False
+        return True
     
     def retrieve_by_id(customer_id):
         """
