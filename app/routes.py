@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, abort, make_response, request
 from app import db 
 from app.models.video import Video 
 from app.models.customer import Customer
+from app.models.rental import Rental
 
 customers_bp = Blueprint("customer_bp", __name__, url_prefix="/customers")
 videos_bp = Blueprint("video_bp", __name__, url_prefix="/video")
@@ -164,3 +165,15 @@ def delete_video_by_id(video_id):
 
     return make_response(jsonify(f"Video: {video_id} has been deleted successfully."), 200) 
 
+#--------------------------- Rentals Route Functions -----------------------------------------
+
+@rentals_bp.route("", methods=["GET"])
+def create_rental():
+    request_body = request.get_json()
+    new_rental = Rental(
+        name=request_body["name"],
+    )
+    db.session.add(new_rental)
+    db.session.commit()
+
+    return make_response(jsonify(f"Rental {new_rental}"))
