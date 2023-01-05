@@ -60,7 +60,7 @@ def create_video():
     request_body = request.get_json()
     check_invalid_record = validate_record(request_body)
     if check_invalid_record:
-        return abort(make_response(jsonify(check_invalid_record), 400))
+        abort(make_response(jsonify(check_invalid_record), 400))
 
     new_video = Video.from_dict(request_body)
     

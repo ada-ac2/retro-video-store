@@ -68,7 +68,7 @@ def register_customer():
     check_invalid_dict = validate_input(customer_info)
 
     if check_invalid_dict:
-        return abort(make_response(jsonify("Invalid request"), 400))
+        abort(make_response(jsonify(check_invalid_dict), 400))
     
     new_customer = Customer.from_dict(customer_info)
     
@@ -81,7 +81,8 @@ def register_customer():
     db.session.commit()
     db.session.refresh(new_customer)
     
-    return make_response(f"Customer {new_customer.name} successfully registered", 201)
+    return new_customer.to_dict(), 201
+    # return make_response(f"Customer {new_customer.name} successfully registered", 201)
     #return make_response(jsonify(f"Customer {new_customer.name} successfully registered"), 201)    
 
 # Update the customer info by id (PUT /customer/<id>)
@@ -107,5 +108,5 @@ def delete_customer(customer_id):
     customer = validate_model(Customer, customer_id)
     db.session.delete(customer)
     db.session.commit()
-
-    return make_response(jsonify(f"Customer {customer.id} info successfully deleted"), 200)
+    return customer.to_dict()
+    #return make_response(jsonify(f"Customer {customer.id} info successfully deleted"), 200)
