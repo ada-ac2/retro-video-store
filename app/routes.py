@@ -5,6 +5,7 @@ from app.models.customer import Customer
 
 customer_bp = Blueprint("customer_bp", __name__, url_prefix="/customers")
 video_bp = Blueprint("video_bp", __name__, url_prefix="/video")
+rental_bp = Blueprint("rental_bp", __name__, url_prefix="/rental")
 
 #--------------------------Helper Functions----------------------------------------------
 def validate_model(cls, model_id):
