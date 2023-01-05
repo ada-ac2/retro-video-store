@@ -19,6 +19,20 @@ class Customer(db.Model):
             "phone": self.phone,
             "registered_at": self.registered_at,
         }
+        
+    def update_attr(self, attr, val):
+        """
+        Updates an attr given a *modifiable attr and value. 
+        * modifiable attrs: name, postal_code, phone
+        """
+        if attr == "name":
+            self.name = val
+        elif attr == "postal_code":
+            self.postal_code = val
+        elif attr == "phone":
+            self.phone = val
+        else:
+            return False
     
     def retrieve_by_id(customer_id):
         """
