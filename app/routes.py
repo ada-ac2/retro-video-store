@@ -136,3 +136,23 @@ def create_one_video():
     db.session.commit()
 
     return make_response({"id":video.id, "title":video.title, "total_inventory":video.total_inventory}, 201)
+
+@videos_bp.route("/<video_id>", methods=["PUT"])
+def update_one_video(video_id):
+    video = validate_model(Video, video_id)
+    request_body = request.get_json()
+    try:
+        video.title = request_body["title"]
+        video.release_date = request_body["release_date"]
+        video.total_inventory = request_body["total_inventory"]
+    except KeyError as keyerror:
+        abort(make_response({"details":f"Request body must include {keyerror.args[0]}."}, 400))
+    
+    db.session.commit()
+
+    return {
+        "id": video.id,
+        "title": video.title,
+        "release_date": video.release_date,
+        "total_inventory": video.total_inventory
+    }
