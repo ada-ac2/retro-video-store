@@ -156,3 +156,12 @@ def update_one_video(video_id):
         "release_date": video.release_date,
         "total_inventory": video.total_inventory
     }
+
+@videos_bp.route("/<video_id>", methods=["DELETE"])
+def delete_one_video(video_id):
+    video = validate_model(Video, video_id)
+
+    db.session.delete(video)
+    db.session.commit()
+
+    return {"id": video.id}
