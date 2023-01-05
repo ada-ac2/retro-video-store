@@ -1,3 +1,4 @@
+from datetime import datetime
 from app import db
 
 class Customer(db.Model):
@@ -5,8 +6,7 @@ class Customer(db.Model):
     name = db.Column(db.String, nullable=False)
     postal_code = db.Column(db.String, nullable=False)
     phone = db.Column(db.String, nullable=False)
-    registered_at = db.Column(db.DateTime)
-    # videos_checked_out = db.Column(db.Integer)
+    registered_at = db.Column(db.DateTime, default=datetime.now())
 
     def to_dict(self):
         """
