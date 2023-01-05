@@ -3,7 +3,7 @@ from app.models.video import Video
 from flask import Blueprint, jsonify, make_response, request, abort
 
 
-video_bp = Blueprint("videos", __name__, url_prefix="/videos")
+video_bp = Blueprint("video", __name__, url_prefix="/videos")
 
 
 def validate_video(cls, model_id):
@@ -34,7 +34,7 @@ def get_videos():
 # a status 404: Not Found if this video does not exist.
 @video_bp.route("/<id>", methods=["GET"])
 def get_video_by_id(id):
-    video = validate_video(id)
+    video = validate_video(Video, id)
     return video.to_dict()
 
 
@@ -59,7 +59,7 @@ def create_video():
 # For example, if total_inventory is missing or is not a number
 @video_bp.route("/<id>", method=["PUT"])
 def update_video(id):
-    video = validate_video(id)
+    video = validate_video(Video, id)
     request_body = request.get_json()
     video.title = request_body["title"]
     video.release_date = request_body["release_date"]
