@@ -1,6 +1,7 @@
 from app import db
 from app.models.customer import Customer
 from app.models.video import Video
+from app.models.rental import Rental
 from app.routes.rental_routes import query_rentals
 from flask import Blueprint, jsonify, abort, make_response, request
 
@@ -75,3 +76,15 @@ def update_customer(customer_id):
     db.session.commit()
 
     return make_response(customer.to_dict(), 200)
+
+@customers_bp.route("/<customer_id>/rentals", methods=["GET"])
+def get_rentals_by_video(customer_id):
+    customer = validate_model(Customer, customer_id)
+    query = query_rentals({"video_id":Customer.id, "status": Rental.RentalStatus.CHECKOUT})
+    response = []
+    for rental in query:
+        video = validate_model(Video, rental.video_id)
+        rental_info = video.to_dict()
+        rental_info["due_date"] = rental.due_date
+        response.append(rental_info)
+    return jsonify(response)
