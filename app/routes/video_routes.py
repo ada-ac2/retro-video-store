@@ -5,18 +5,9 @@ from flask import Blueprint, jsonify, abort, make_response, request
 
 videos_bp = Blueprint("video_bp", __name__, url_prefix="/videos")
 
-
-def validate_request(request):
-    video_attributes = ["title","release_date","total_inventory"]
-    for attribute in video_attributes:    
-        if attribute not in request.keys():
-            abort(make_response({"details":f"Request body must include {attribute}."}, 400))
-    return request
-
-
 @videos_bp.route("", methods=["POST"])
 def create_video():
-    request_body = validate_request(request.get_json())
+    request_body = validate_request_body(Video, request.get_json())
     new_video = Video.from_dict(request_body)
 
     db.session.add(new_video)

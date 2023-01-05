@@ -8,13 +8,13 @@ class Video(db.Model):
     total_inventory = db.Column(db.Integer, nullable=False)
 
     def to_dict(self):
+        
         return {
             "id": self.id,
             "title": self.title,
             "release_date": self.release_date,
             "total_inventory": self.total_inventory
         }
-
 
     @classmethod
     def from_dict(cls, request_body):
