@@ -9,17 +9,29 @@ customers_bp = Blueprint("customers_bp", __name__, url_prefix="/customers")
 def create_customer():
     customer_data = request.get_json()
 
+    if "name" not in customer_data:
+        abort(make_response({"details": "Request body must include name."}, 400))
+    if "postal_code" not in customer_data:
+        abort(make_response({"details": "Request body must include postal_code."}, 400))
+    if "phone" not in customer_data:
+        abort(make_response({"details": "Request body must include phone."}, 400))
+
     new_customer = Customer(
-        name = customer_data["name"],
-        postal_code = customer_data["postal_code"],
-        phone = customer_data["phone"],
+        name=customer_data["name"],
+        postal_code=customer_data["postal_code"],
+        phone=customer_data["phone"],
         videos_checked_out_count = 0
     )
-    
+
     db.session.add(new_customer)
     db.session.commit()
 
-    return make_response(f"Customer {new_customer.name} created", 201)
+    return make_response(jsonify({
+        "id": new_customer.id,
+        "name": new_customer.name,
+        "postal_code": new_customer.postal_code,
+        "phone": new_customer.phone,
+        "videos_checked_out_count": new_customer.videos_checked_out_count}), 201)
 
 @customers_bp.route("", methods=["GET"])
 def get_customers():
