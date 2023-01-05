@@ -6,14 +6,15 @@ class Customer(db.Model):
     name = db.Column(db.String)
     postal_code = db.Column(db.String)
     phone = db.Column(db.String)
-    register_at = db.Column(db.DateTime, default=datetime.datetime.now())
+    registered_at = db.Column(db.DateTime, default=datetime.datetime.now())
     videos_checked_out_count = db.Column(db.Integer)
+    rentals = db.relationship("Video", secondary="rentals", backref="customers")
     
     def to_dict(self):
         customer_dict = {}
         customer_dict["id"] = self.id
         customer_dict["name"] = self.name
-        customer_dict["registered_at"]: self.register_at
+        customer_dict["registered_at"]: self.registered_at
         customer_dict["postal_code"]=self.postal_code
         customer_dict["phone"] = self.phone
         
