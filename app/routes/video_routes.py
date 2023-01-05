@@ -87,6 +87,7 @@ def update_video(id):
     video.title = request_body["title"]
     video.release_date = request_body["release_date"]
     video.total_inventory = request_body["total_inventory"]
+    #new_video = Video.from_dict(request_body) #why isn't it working
     db.session.commit()
     db.session.refresh(video)
     #video.available_inventory = request_body["available_inventory"]
