@@ -8,3 +8,26 @@ class Customer(db.Model):
     postal_code = db.Column(db.String, nullable=False)
     phone = db.Column(db.String, nullable=False)
     videos_checked_out_count = db.Column(db.Integer)
+
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "registered_at": self.registered_at,
+            "postal_code": self.postal_code,
+            "phone": self.phone, 
+            "videos_checked_out_count": self.videos_checked_out_count
+        }
+
+
+    @classmethod
+    def from_dict(cls, request_body):
+        new_obj = cls(
+            name = request_body["name"],
+            registered_at = request_body["registered_at"],
+            postal_code = request_body["postal_code"],
+            phone = request_body["phone"], 
+            videos_checked_out_count = request_body["videos_checked_out_count"]
+        )
+        return new_obj
