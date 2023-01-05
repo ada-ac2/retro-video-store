@@ -1,15 +1,24 @@
 from app import db
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql.functions import now
 
 class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
-    registered_at = db.Column(db.String)
+    registered_at = db.Column(db.DateTime, server_default = now())
     postal_code = db.Column(db.String)
     phone = db.Column(db.String)
-    #videos_checked_out_count = db.Column(db.Integer)
-    #def to_dict(self):
+    videos_checked_out_count = db.Column(db.Integer, default = 0)
         
+    def to_dict(self):
+        customer_as_dict = {}
+        customer_as_dict["id"] = self.id
+        customer_as_dict["name"] = self.name
+        customer_as_dict["registered_at"] = self.registered_at
+        customer_as_dict["postal_code"] = self.postal_code
+        customer_as_dict["phone"] = self.phone        
 
+        return customer_as_dict
 
     @classmethod
     def from_dict(cls, customer_data):
@@ -17,7 +26,7 @@ class Customer(db.Model):
                         registered_at=customer_data["registered_at"],
                         postal_code = customer_data['postal_code'],
                         phone = customer_data['phone'])
-        return customer_data
+        return new_customer
 
 
 # #  {

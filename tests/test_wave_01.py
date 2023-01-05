@@ -23,8 +23,9 @@ def test_get_videos_no_saved_videos(client):
     response_body = response.get_json()
 
     # Assert
-    assert response.status_code == 200
+    
     assert response_body == []
+    assert response.status_code == 200
 
 def test_get_videos_one_saved_video(client, one_video):
     # Act
