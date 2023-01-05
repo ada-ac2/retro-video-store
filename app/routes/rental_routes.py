@@ -8,12 +8,19 @@ from flask import Blueprint, jsonify, abort, make_response, request
 
 rentals_bp = Blueprint("rentals_bp", __name__, url_prefix="/rentals")
 
+#calculate avail inventory
+def availabl_inventory(video):
+    vids_out = db.session.query(Rental).filter_by(
+        video_id=video.id,
+        status=Rental.RentalStatus.CHECKOUT)
+    return video.total_inventory-len([1 for vid in vids_out])
+#response helper function
 def rental_response(rental,customer,video):
     rental_response={}
     rental_response["video_id"]=video.id
     rental_response["customer_id"]=customer.id
     rental_response["videos_checked_out_count"]=customer.videos_checked_out_count
-    rental_response["available_inventory"] = video.total_inventory
+    rental_response["available_inventory"] = availabl_inventory(video) #here we need to subtract all rentals associated with video 
     return rental_response
 
 
@@ -27,7 +34,6 @@ def video_checkout():
         if video.total_inventory == 0:
             abort(make_response({"message":"Could not perform checkout"}, 400))
         new_rental=Rental.from_dict(request_body)
-        video.total_inventory -=1
         customer.videos_checked_out_count +=1
 
     except KeyError as key_error:
@@ -37,3 +43,7 @@ def video_checkout():
     db.session.commit()
 
     return make_response(rental_response(new_rental,customer,video), 200)
+
+@rentals_bp.route("/check_in", methods=["PUT"])
+def checkin_video():
+    request_body = request.get_json()
