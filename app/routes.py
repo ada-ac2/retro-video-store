@@ -3,9 +3,9 @@ from app import db
 from app.models.video import Video 
 from app.models.customer import Customer
 
-customer_bp = Blueprint("customer_bp", __name__, url_prefix="/customers")
-video_bp = Blueprint("video_bp", __name__, url_prefix="/video")
-rental_bp = Blueprint("rental_bp", __name__, url_prefix="/rental")
+customers_bp = Blueprint("customer_bp", __name__, url_prefix="/customers")
+videos_bp = Blueprint("video_bp", __name__, url_prefix="/video")
+rentals_bp = Blueprint("rental_bp", __name__, url_prefix="/rental")
 
 #--------------------------Helper Functions----------------------------------------------
 def validate_model(cls, model_id):
