@@ -33,29 +33,36 @@ def get_one_video_by_id(video_id):
 @videos_bp.route("", methods=["POST"])
 def create_a_video():
     request_body = request.get_json()
-    
-    new_video = Video.from_dict(request_body)
+    try:
+        new_video = Video.from_dict(request_body)
+    except KeyError as key_error:
+        abort(make_response({"details":f"Request body must include {key_error.args[0]}."}, 400))
     db.session.add(new_video)
     db.session.commit()
 
     return make_response(new_video.to_dict(), 201)
 
-# try:
-#         new_moon = Moon.from_dict(request_body)
-#         new_moon["planet"] = planet
-#     except KeyError as key_error:
-#         abort(make_response({"message": f"Bad request: {key_error.args[0]} attribute is missing"}, 400))
-
 @videos_bp.route("/<video_id>", methods=["PUT"])
 def update_a_video(video_id):
     video = validate_model(Video, video_id)
     request_body = request.get_json()
-
-    video.title = request_body["title"]
-    video.release_date = request_body["release_date"]
-    video.total_inventory = request_body["total_inventory"]
-
+    try:
+        video.title = request_body["title"]
+        video.release_date = request_body["release_date"]
+        video.total_inventory = request_body["total_inventory"]
+    except KeyError as key_error:
+        abort(make_response({"details":f"Request body must include {key_error.args[0]}."}, 400))
+    
     db.session.add(video)
     db.session.commit()
 
     return make_response(video.to_dict(), 200)
+
+@videos_bp.route("/<video_id>", methods=["DELETE"])
+def delete_a_video(video_id):
+    video = validate_model(Video, video_id)
+
+    db.session.delete(video)
+    db.session.commit()
+
+    return make_response(jsonify(video.to_dict()), 200)
