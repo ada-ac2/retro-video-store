@@ -63,3 +63,25 @@ def get_one_customer(customer_id):
         "phone": customer.phone,
         "videos_checked_out_count": customer.videos_checked_out_count
     })
+
+@customers_bp.route("/<customer_id>",methods=["PUT"])
+def update_one_customer(customer_id):
+    customer_info = validate_model(Customer, customer_id)
+    request_body = validate_request_body(Customer, request.get_json())
+
+    customer_info.name = request_body["name"]
+    customer_info.postal_code = request_body["postal_code"]
+    customer_info.phone = request_body["phone"]
+
+    db.session.commit()
+
+    return make_response(jsonify(customer_info.to_dict()), 200)
+
+@customers_bp.route("/<customer_id>",methods=["DELETE"])
+def delete_one_customer(customer_id):
+    customer_info = validate_model(Customer, customer_id)
+    
+    db.session.delete(customer_info)
+    db.session.commit()
+    
+    return make_response(jsonify(customer_info.to_dict()), 200)
