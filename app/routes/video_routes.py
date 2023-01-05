@@ -34,7 +34,7 @@ def get_one_video(video_id):
 @videos_bp.route("/<video_id>",methods=["PUT"])
 def update_one_video(video_id):
     video_info = validate_model(Video, video_id)
-    request_body = request.get_json()
+    request_body = validate_request_body(Video, request.get_json())
 
     video_info.title = request_body["title"]
     video_info.release_date = request_body["release_date"]
