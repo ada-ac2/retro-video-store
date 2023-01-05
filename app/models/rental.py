@@ -3,7 +3,7 @@ from app import db
 class Rental(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String)
-    due_date = db.Column(db.Datetime)
+    due_date = db.Column(db.String)
     videos_checked_out_count = db.Column(db.Integer)
     avaliable_inventory = db.Column(db.Integer)
 

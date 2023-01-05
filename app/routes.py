@@ -18,7 +18,7 @@ def validate_model(cls, model_id):
     model = cls.query.get(model_id)
 
     if not model:
-        abort(make_response({"message":f"{cls.__name__} {model_id} not found"}, 404))    
+        abort(make_response({"message":f"{cls.__name__} {model_id} was not found"}, 404))    
     return model 
 
 def validate_request_body(request_body): 
@@ -36,7 +36,7 @@ def validate_video_request_body(request_body):
 
 #--------------------------- Customer Route Functions -----------------------------------------
 
-@customers_bp.route("/customers", method = ["POST"])
+@customers_bp.route("/customers", methods=["POST"])
 def create_customer():
     request_body = request.get_json()
     validate_request_body(request_body)
@@ -48,7 +48,7 @@ def create_customer():
 
     return make_response(jsonify(f"Customer: {new_customer.name} created successfully.", 201))
 
-@customers_bp.route("", method = ["GET"])
+@customers_bp.route("", methods=["GET"])
 def read_all_customers():
     #get a query object for later use
     customer_query = Customer.query
@@ -73,13 +73,13 @@ def read_all_customers():
 
     return make_response(jsonify(customers_response), 200)
 
-@customers_bp.route("/<customer_id>", method = {"GET"})
+@customers_bp.route("/<customer_id>", methods=["GET"])
 def read_one_customer_by_id(customer_id):
     customer = validate_model(Customer, customer_id)
 
     return (customer.to_dict(),200)
 
-@customers_bp.route("/<customer_id>", method = {"PUT"})
+@customers_bp.route("/<customer_id>", methods=["PUT"])
 def update_customer_by_id(customer_id):
     customer = validate_model(Customer, customer_id)
 
@@ -95,7 +95,7 @@ def update_customer_by_id(customer_id):
 
     return make_response(jsonify(f"Customer: {customer_id} has been updated successfully."), 200) 
 
-@customers_bp.route("/<customer_id>", methods = ["DELETE"])
+@customers_bp.route("/<customer_id>", methods=["DELETE"])
 def delete_customer_by_id(customer_id): 
     customer = validate_model(Customer, customer_id)  
 
@@ -110,7 +110,7 @@ def delete_customer_by_id(customer_id):
 ######################
 #--------------------------- Video Route Functions -----------------------------------------
 
-@videos_bp.route("", method = ["POST"])
+@videos_bp.route("", methods=["POST"])
 def create_one_video():
     request_body = request.get_json()
     validate_video_request_body(request_body)
@@ -122,7 +122,7 @@ def create_one_video():
 
     return make_response(jsonify(f"Video: {new_video.title} created successfully.", 201))
 
-@videos_bp.route("", method = ["GET"])
+@videos_bp.route("", methods=["GET"])
 def read_all_videos():
     #get a query object for later use
     video_query = Video.query
@@ -133,15 +133,15 @@ def read_all_videos():
     for video in videos: 
         video_response.append(video.to_dict())    #use to_dict function to make code more readable
     print(video_response)
-    return make_response(jsonify(video_response), 200)
+    return jsonify(video_response)
 
-@videos_bp.route("/<video_id>", method = {"GET"})
+@videos_bp.route("/<video_id>", methods=["GET"])
 def read_one_video_by_id(video_id):
     video = validate_model(Video, video_id)
 
     return (video.to_dict(),200)
 
-@videos_bp.route("/<video_id>", method = {"PUT"})
+@videos_bp.route("/<video_id>", methods=["PUT"])
 def update_video_by_id(video_id):
     video = validate_model(Video, video_id)
 
@@ -156,7 +156,7 @@ def update_video_by_id(video_id):
 
     return make_response(jsonify(f"Video: {video_id} has been updated successfully."), 200) 
 
-@videos_bp.route("/<video_id>", methods = ["DELETE"])
+@videos_bp.route("/<video_id>", methods=["DELETE"])
 def delete_video_by_id(video_id): 
     video = validate_model(Video, video_id)  
 
@@ -166,7 +166,6 @@ def delete_video_by_id(video_id):
     return make_response(jsonify(f"Video: {video_id} has been deleted successfully."), 200) 
 
 #--------------------------- Rentals Route Functions -----------------------------------------
-
 @rentals_bp.route("", methods=["GET"])
 def create_rental():
     request_body = request.get_json()
