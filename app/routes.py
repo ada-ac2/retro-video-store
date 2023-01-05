@@ -21,29 +21,16 @@ def get_all_customers():
     customers_response = []
     customers = Customer.query.all()
     for customer in customers:
-        customers_response.append({
-            "id" : customer.id,
-            "name": customer.name,
-            "postal_code": customer.postal_code,
-            "phone": customer.phone,
-            "register_at": customer.register_at, 
-            "videos_checked_out_count":customer.videos_checked_out_count
-        })
-    return jsonify(customers_response)
+        customers_response.append(customer.to_dict())
+
+    return make_response(jsonify(customers_response), 200) 
 
 @customers_bp.route("/<customer_id>", methods=["GET"])
 def get_one_customer(customer_id):
     
     customer = validate_model(Customer, customer_id)
     
-    return {
-        "id" : customer.id,
-        "name": customer.name,
-        "postal_code": customer.postal_code,
-        "phone": customer.phone,
-        "register_at": customer.register_at, 
-        "videos_checked_out_count":customer.videos_checked_out_count
-    }
+    return make_response(jsonify(customer.to_dict()), 200)
 
 @customers_bp.route("", methods=["POST"])
 def create_one_customer():
@@ -101,24 +88,14 @@ def get_all_videos():
     videos = Video.query.all()
 
     for video in videos:
-        videos_response.append({
-            "id": video.id,
-            "title": video.title,
-            "release_date": video.release_date,
-            "total_inventory": video.total_inventory
-        })
-    return jsonify(videos_response)
+        videos_response.append(video.to_dict())
+    return make_response(jsonify(videos_response), 200)
 
 @videos_bp.route("/<video_id>", methods=["GET"])
 def get_one_video(video_id):
     video = validate_model(Video, video_id)
 
-    return {
-        "id": video.id,
-        "title": video.title,
-        "release_date": video.release_date,
-        "total_inventory": video.total_inventory
-    }
+    return make_response(jsonify(video.to_dict()),200)
 
 @videos_bp.route("", methods=["POST"])
 def create_one_video():
@@ -150,12 +127,7 @@ def update_one_video(video_id):
     
     db.session.commit()
 
-    return {
-        "id": video.id,
-        "title": video.title,
-        "release_date": video.release_date,
-        "total_inventory": video.total_inventory
-    }
+    return make_response(jsonify(video.to_dict()), 200)
 
 @videos_bp.route("/<video_id>", methods=["DELETE"])
 def delete_one_video(video_id):

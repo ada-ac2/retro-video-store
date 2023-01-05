@@ -10,6 +10,15 @@ class Customer(db.Model):
     register_at = db.Column(db.DateTime, server_default=now())
     videos_checked_out_count = db.Column(db.Integer, default=0)
 
+    def to_dict(self): 
+        return {
+                "id" : self.id,
+                "name": self.name,
+                "postal_code": self.postal_code,
+                "phone": self.phone,
+                "register_at": self.register_at, 
+                "videos_checked_out_count":self.videos_checked_out_count
+        }
 
 
 
