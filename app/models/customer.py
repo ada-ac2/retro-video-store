@@ -14,7 +14,7 @@ class Customer(db.Model):
         customer_as_dict = {}
         customer_as_dict["id"] = self.id
         customer_as_dict["name"] = self.name
-        customer_as_dict["registered_at"] = self.registered_at
+        #customer_as_dict["registered_at"] = self.registered_at
         customer_as_dict["postal_code"] = self.postal_code
         customer_as_dict["phone"] = self.phone        
 
@@ -23,9 +23,9 @@ class Customer(db.Model):
     @classmethod
     def from_dict(cls, customer_data):
         new_customer = Customer(name = customer_data["name"],
-                        registered_at=customer_data["registered_at"],
-                        postal_code = customer_data['postal_code'],
-                        phone = customer_data['phone'])
+                        #registered_at=customer_data["registered_at"],
+                        postal_code = customer_data["postal_code"],
+                        phone = customer_data["phone"])
         return new_customer
 
 
