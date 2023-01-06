@@ -19,7 +19,7 @@ class Video(db.Model):
 
         video_rentals = []
         for rental in self.rentals:
-            video_rentals.append(rental)
+            video_rentals.append(rental.to_dict())
         video_dict["rentals"] = video_rentals
 
         return video_dict

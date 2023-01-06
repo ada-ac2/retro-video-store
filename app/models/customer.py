@@ -21,10 +21,11 @@ class Customer(db.Model):
             "videos_checked_out_count": self.videos_checked_out_count
         }
 
-        video_rentals = []
-        for rental in self.rentals:
-            video_rentals.append(rental)
-        customer_dict["rentals"] = video_rentals
+        # video_rentals = []
+        # for rental in self.rentals:
+
+        #     video_rentals.append(rental)
+        # customer_dict["rentals"] = video_rentals
 
         return customer_dict
 
