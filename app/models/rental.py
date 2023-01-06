@@ -6,8 +6,8 @@ class Rental(db.Model):
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'))
     video_id = db.Column(db.Integer, db.ForeignKey('video.id'))
     due_date = db.Column(db.DateTime, default=datetime.utcnow()+timedelta(days=7))
-    customers = db.relationship("Customer", back_populates="rentals")
-    videos = db.relationship("Video", back_populates="rentals")
+    customer = db.relationship("Customer", back_populates="rentals")
+    video = db.relationship("Video", back_populates="rentals")
 
     def to_dict(self):
         rental_dict = {
@@ -17,15 +17,15 @@ class Rental(db.Model):
             "due_date": self.due_date
         }
 
-        video_rentals = []
-        for video in self.videos:
-            video_rentals.append(video)
-        video_dict["videos"] = video_rentals
+        # video_rentals = []
+        # for video in self.videos:
+        #     video_rentals.append(video)
+        # video_dict["videos"] = video_rentals
 
-        customer_rentals = []
-        for customer in self.customers:
-            customer_rentals.append(customer)
-        rental_dict["customers"] = customer_rentals
+        # customer_rentals = []
+        # for customer in self.customers:
+        #     customer_rentals.append(customer)
+        # rental_dict["customers"] = customer_rentals
 
         return rental_dict
 

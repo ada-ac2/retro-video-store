@@ -8,7 +8,7 @@ class Customer(db.Model):
     postal_code = db.Column(db.String, nullable=False)
     phone = db.Column(db.String, nullable=False)
     videos_checked_out_count = db.Column(db.Integer)
-    rentals = db.relationship("Rental", secondary="customer_rental", back_populates="customers")
+    rentals = db.relationship("Rental", back_populates="customer")
 
 
     def to_dict(self):
@@ -20,7 +20,7 @@ class Customer(db.Model):
             "phone": self.phone, 
             "videos_checked_out_count": self.videos_checked_out_count
         }
-        
+
         video_rentals = []
         for rental in self.rentals:
             video_rentals.append(rental)
