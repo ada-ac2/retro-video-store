@@ -90,3 +90,55 @@ def check_out():
         "videos_checked_out_count": customer.videos_checked_out_count,
         "available_inventory": available_inventory
         }), 200)
+
+@rentals_bp.route("/check-in", methods=["POST"])
+def check_in():
+
+    request_body = validate_request_body(Rental, request.get_json())
+    customer = validate_model(Customer, request_body["customer_id"])
+    video = validate_model(Video, request_body["video_id"])
+    
+    # Check video's available inventory
+    if video.total_inventory < 1:
+        abort(make_response({"message": "Could not perform checkout"}, 400))
+    
+    # Update video's available inventory
+    available_inventory = video.total_inventory - 1
+    video.total_inventory = available_inventory
+
+    # Create new rental
+    new_rental = Rental(
+        customer_id=customer.id,
+        video_id=video.id,
+        )
+
+    db.session.add(new_rental)
+    db.session.commit()
+
+    # Create entry in CustomerRental table
+    new_customer_rental = CustomerRental(
+        customer_id=customer.id,
+        rental_id=new_rental.id
+    )
+    db.session.add(new_customer_rental)
+
+    # Create entry in VideoRental table
+    new_video_rental = VideoRental(
+        video_id=video.id,
+        rental_id=new_rental.id
+    )
+
+    db.session.add(new_video_rental)
+    
+    # Update customer information
+    videos_checked_out_count = customer.videos_checked_out_count + 1
+    customer.videos_checked_out_count = videos_checked_out_count
+    db.session.commit()
+    
+    return make_response(jsonify({
+        "customer_id": customer.id,
+        "video_id": new_rental.video_id,
+        "due_date": new_rental.due_date,
+        "videos_checked_out_count": customer.videos_checked_out_count,
+        "available_inventory": available_inventory
+        }), 200)
