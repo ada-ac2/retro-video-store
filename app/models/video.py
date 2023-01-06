@@ -10,13 +10,19 @@ class Video(db.Model):
     # video_rentals = db.relationship("Rental", back_populates="video_rental")
 
     def to_dict(self):
-        
-        return {
+        video_dict = {
             "id": self.id,
             "title": self.title,
             "release_date": self.release_date,
             "total_inventory": self.total_inventory
         }
+
+        video_rentals = []
+        for rental in self.rentals:
+            video_rentals.append(rental)
+        video_dict["rentals"] = video_rentals
+
+        return video_dict
 
     @classmethod
     def from_dict(cls, request_body):

@@ -12,7 +12,7 @@ class Customer(db.Model):
 
 
     def to_dict(self):
-        return {
+        customer_dict = {
             "id": self.id,
             "name": self.name,
             "registered_at": self.registered_at,
@@ -20,7 +20,13 @@ class Customer(db.Model):
             "phone": self.phone, 
             "videos_checked_out_count": self.videos_checked_out_count
         }
+        
+        video_rentals = []
+        for rental in self.rentals:
+            video_rentals.append(rental)
+        customer_dict["rentals"] = video_rentals
 
+        return customer_dict
 
     @classmethod
     def from_dict(cls, request_body):

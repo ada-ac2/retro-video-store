@@ -98,6 +98,7 @@ def check_in():
     customer = validate_model(Customer, request_body["customer_id"])
     video = validate_model(Video, request_body["video_id"])
     
+    
     # Check video's available inventory
     if video.total_inventory < 1:
         abort(make_response({"message": "Could not perform checkout"}, 400))
