@@ -38,14 +38,18 @@ def validate_video_request_body(request_body):
 @customers_bp.route("/customers", methods=["POST"])
 def create_customer():
     request_body = request.get_json()
-    validate_request_body(request_body)
+    #validate_request_body(request_body)
 
-    new_customer = Customer.from_dict(request_body)
+    new_customer = Customer(
+        name = request_body["name"],
+        postal_code = request_body["postal_code"],
+        phone = request_body["phone"],
+    )
 
     db.session.add(new_customer)
     db.session.commit()
 
-    return make_response(jsonify(f"Customer: {new_customer.name} created successfully.", 201))
+    return make_response(jsonify({"id": new_customer.id}, 201))
 
 @customers_bp.route("", methods=["GET"])
 def read_all_customers():
@@ -119,7 +123,7 @@ def create_one_video():
     db.session.add(new_video)
     db.session.commit()
 
-    return make_response(jsonify(f"Video: {new_video.title} created successfully."), 201)
+    return new_video.to_dict(), 201
 
 @videos_bp.route("", methods=["GET"])
 def read_all_videos():
