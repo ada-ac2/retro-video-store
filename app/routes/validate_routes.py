@@ -33,6 +33,18 @@ def validate_customer_user_input(customer_value):
 
     return invalid_dict
 
+def validate_record(video):
+    invalid_dict = dict()
+    if "title" not in video or not isinstance(video["title"], str) or video["title"] is None:
+        invalid_dict["details"] = "Request body must include title."
+    if "release_date" not in video or not isinstance(video["release_date"], str) \
+        or video["release_date"] is None:
+        invalid_dict["details"] = "Request body must include release_date."
+    if "total_inventory" not in video or not isinstance(video["total_inventory"], int) \
+        or video["total_inventory"] < 0:
+        invalid_dict["details"] = "Request body must include total_inventory."
+    return invalid_dict
+
 # Validate post rentals/check_out 
 # Required Request Body Parameters: customer_id, video_id
 # Return 404: Not Found if eather not exist
@@ -45,3 +57,6 @@ def validate_customer_user_input(customer_value):
 # Return 400: Bad Request if the video and customer do not match 
 # a current rental
 
+# Add check available_inventory function
+# require video_id parameter
+# return available numbers of copy 

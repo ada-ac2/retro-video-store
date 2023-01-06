@@ -1,5 +1,7 @@
 from app import db
 from app.models.customer import Customer
+from app.models.video import Video
+from app.models.rental import Rental
 from .validate_routes import validate_model, validate_customer_user_input
 from flask import Blueprint, jsonify, abort, make_response, request
 from datetime import date
@@ -17,12 +19,14 @@ def get_all_customers():
 
     return jsonify(customers_list), 200
 
+
 # Get the customer info by id (GET /customers/<id>)
 # Return info in JSON format
 @customer_bp.route("/<customer_id>",methods=["GET"] )
 def get_one_customer(customer_id):
     customer = validate_model(Customer, customer_id)
     return customer.to_dict()
+
 
 # Register a customer info (POST /customers)
 # Return sussess message "Customer {name} successfully registered"
@@ -46,8 +50,7 @@ def register_customer():
     db.session.refresh(new_customer)
     
     return new_customer.to_dict(), 201
-    # return make_response(f"Customer {new_customer.name} successfully registered", 201)
-    #return make_response(jsonify(f"Customer {new_customer.name} successfully registered"), 201)    
+
 
 # Update the customer info by id (PUT /customer/<id>)
 # Return sussess message "Customer {id} info successfully udated"
@@ -58,6 +61,7 @@ def update_customer(customer_id):
     check_invalid_dict = validate_customer_user_input(request_body)
     if check_invalid_dict:
         return abort(make_response(jsonify(check_invalid_dict), 400))
+    
     customer.name = request_body["name"]
     customer.postal_code = request_body["postal_code"]
     customer.phone = request_body["phone"]
@@ -67,6 +71,7 @@ def update_customer(customer_id):
 
     return customer.to_dict()
 
+
 # Delete the customer info by id (DELETE /customer/<id>)
 # Return sussess message "Customer {id} info successfully udated"
 @customer_bp.route("/<customer_id>",methods=["DELETE"])
@@ -75,10 +80,14 @@ def delete_customer(customer_id):
     db.session.delete(customer)
     db.session.commit()
     return customer.to_dict()
-    #return make_response(jsonify(f"Customer {customer.id} info successfully deleted"), 200)
 
 
-# GET /customers/<id>/rentals
-# List the videos a customer currently has checked out
-# validate customer_id
+# Get customer rentals by customer_id (GET /customers/<id>/rentals)
+# Return list the videos a customer currently has checked out - successful
+# Return 404 if customer_id not exist (validate customer_id)
 
+# @customer_bp.route("/<customer_id>/rentals",methods=["GET"])
+# def get_video_rentals_for_customer(customer_id):
+#     customer = validate_model(Customer, customer_id)
+
+#     rentals_list = []

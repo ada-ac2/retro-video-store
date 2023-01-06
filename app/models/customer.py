@@ -8,8 +8,7 @@ class Customer(db.Model):
     postal_code = db.Column(db.String, nullable = False)
     phone = db.Column(db.String, nullable = False)
     videos_checked_out_count = db.Column(db.Integer)
-    videos = db.relationship("Video", secondary="rentals", back_populates="customers")
-
+    video = db.relationship("Video", secondary="rental", back_populates="customer")
 
     def to_dict(self):
         customer_as_dict = {}
@@ -19,7 +18,6 @@ class Customer(db.Model):
         customer_as_dict["phone"] = self.phone
         customer_as_dict["registered_at"] = self.registered_at
         customer_as_dict["videos_checked_out_count"] = self.videos_checked_out_count
-
         return customer_as_dict
 
     @classmethod
