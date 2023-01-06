@@ -3,7 +3,7 @@ from app.models.video import Video
 from app.models.model_helpers import *
 from flask import Blueprint, jsonify, abort, make_response, request
 
-videos_bp = Blueprint("video_bp", __name__, url_prefix="/videos")
+videos_bp = Blueprint("videos_bp", __name__, url_prefix="/videos")
 
 @videos_bp.route("", methods=["POST"])
 def create_video():
