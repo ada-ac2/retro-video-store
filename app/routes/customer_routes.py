@@ -1,8 +1,8 @@
 from app import db
 from app.models.customer import Customer
-from .customer_routes import validate_model, validate_customer_user_input
+from .validate_routes import validate_model, validate_customer_user_input
 from flask import Blueprint, jsonify, abort, make_response, request
-from datetime import datetime
+from datetime import date
 
 customer_bp = Blueprint("customer_bp", __name__, url_prefix = "/customers")
 
@@ -39,7 +39,7 @@ def register_customer():
     if not new_customer.videos_checked_out_count:
         new_customer.videos_checked_out_count = 0
 
-    new_customer.registered_at = datetime.now()
+    new_customer.registered_at = date.today()
 
     db.session.add(new_customer)
     db.session.commit()
