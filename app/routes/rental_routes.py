@@ -45,6 +45,13 @@ def check_out():
     request_body = validate_request_body(Rental, request.get_json())
     customer = validate_model(Customer, request_body["customer_id"])
     video = validate_model(Video, request_body["video_id"])
+
+    # Check if rental for customer and video already exists
+    rental_query = Rental.query.all()
+    if rental_query:
+        rental_query = Rental.query.filter_by(customer_id=customer.id).filter_by(video_id=video.id)
+        if rental_query:
+            abort(make_response({"message": "Could not perform checkout"}, 400))
     
     # Check video's available inventory
     if video.total_inventory < 1:
