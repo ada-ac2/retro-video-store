@@ -7,7 +7,6 @@ class Video(db.Model):
     release_date = db.Column(db.DateTime, default=datetime.utcnow())
     total_inventory = db.Column(db.Integer, nullable=False)
     rentals = db.relationship("Rental", back_populates="video")
-    # video_rentals = db.relationship("Rental", back_populates="video_rental")
 
     def to_dict(self):
         video_dict = {

@@ -10,7 +10,6 @@ class Customer(db.Model):
     videos_checked_out_count = db.Column(db.Integer)
     rentals = db.relationship("Rental", back_populates="customer")
 
-
     def to_dict(self):
         customer_dict = {
             "id": self.id,
