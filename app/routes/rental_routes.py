@@ -65,14 +65,14 @@ def check_out():
 
     # Create entry in CustomerRental table
     new_customer_rental = CustomerRental(
-        customer_id=request_body["customer_id"],
+        customer_id=customer.id,
         rental_id=new_rental.id
     )
     db.session.add(new_customer_rental)
 
     # Create entry in VideoRental table
     new_video_rental = VideoRental(
-        video_id=request_body["video_id"],
+        video_id=video.id,
         rental_id=new_rental.id
     )
 
