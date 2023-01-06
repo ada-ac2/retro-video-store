@@ -21,7 +21,6 @@ def validate_model(cls, model_id):
     model = cls.query.get(model_id)
     if not model:
         return abort(make_response({"message": f"{cls.__name__} {model_id} was not found"}, 404))
-        #Video 1 was not found'}
     else:
         return model
 
@@ -39,11 +38,8 @@ def validate_post_request(request, reqs):
     # check if all requirements in request
     for req in reqs:
         if req not in request_body:
-            #"Request body must include name." in response_body["details"]
-            abort(make_response({
-                "details" : f"Request body must include {req}." 
-                
-            }, 400))
+            response = f"Request body must include {req}."
+            abort(make_response({"details" : response}, 400))
     return request_body
 
 def validate_put_request(request, reqs):
@@ -58,14 +54,21 @@ def validate_put_request(request, reqs):
     # collect request
     request_body = request.get_json()
     # check if all requirements in request
-    for req in reqs:
-        if req not in request_body:
-            #"Request body must include name." in response_body["details"]
-            abort(make_response({
-                "details" : f"Request body must include {req}." 
-                
-            }, 400))
+    set_request_keys = set(request_body.keys())
+    if not set_request_keys.issubset(reqs):
+        return abort(make_response({
+                "message": f"modifiable must include {reqs}"
+        }, 400))
     return request_body
+
+def validate_request_attributes(cls,request_body):
+     # unpack request body items
+    for key, val in request_body.items():
+        # update customer data
+        result = cls.update_attr(key, val)
+        if not result:
+            return abort(make_response({"message": f"{val} is invalid"}, 400))
+    return result
 
 # ~~~~~~ initialize customers blueprint ~~~~~~
 customers_bp = Blueprint("customers", __name__, url_prefix="/customers")
@@ -100,21 +103,11 @@ def create_a_customer():
 def modify_a_customer(customer_id):
     
     reqs = {"name", "postal_code", "phone"}
-    request_body = request.get_json()
-    set_request_keys = set(request_body.keys())
-    if not set_request_keys.issubset(reqs):
-        return abort(make_response({
-                "message": f"modifiable must include {reqs}"
-        }, 400))
-    customer = validate_model(Customer, customer_id)
-    # unpack request body items
-    for key, val in request_body.items():
-        # update customer data
-        result = customer.update_attr(key, val)
-        if not result:
-            return abort(make_response({"message": f"{val} is invalid"}, 400))
-
-    db.session.commit()
+    request_body = validate_put_request(request,reqs)
+    result = validate_request_attributes(Customer, request_body)
+    if result:
+        customer = validate_model(Customer, customer_id)
+        db.session.commit()
     return make_response(customer.to_dict(), 200)
 
 @customers_bp.route("/<customer_id>", methods=["DELETE"])

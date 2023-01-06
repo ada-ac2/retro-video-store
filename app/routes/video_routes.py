@@ -1,6 +1,9 @@
 from app import db
 from app.models.video import Video
 from app.routes.customer_routes import validate_model
+from app.routes.customer_routes import validate_post_request
+from app.routes.customer_routes import validate_put_request
+from app.routes.customer_routes import validate_request_attributes
 from flask import Blueprint, jsonify, abort, make_response, request
 
 video_bp = Blueprint("video_bp", __name__, url_prefix="/videos")
@@ -28,12 +31,42 @@ def get_video_by_id(video_id):
 def create_a_new_video():
     # The API should return back detailed errors and a status 400: Bad Request 
     # if the video does not have any of the required fields to be valid.
-    request_body = request.get_json()
+    #request_body = request.get_json()
     reqs = ["title", "release_date", "total_inventory"]
-    #request_body = validate_post_request(request,reqs)
+    request_body = validate_post_request(request,reqs)
     new_video = Video.from_dict(request_body)
     
     db.session.add(new_video)
     db.session.commit()
 
     return make_response(new_video.to_dict(), 201)
+
+@video_bp.route("<video_id>", methods=["PUT"])
+def update_a_video(video_id):
+    # The API should return back detailed errors and a status 404: Not Found 
+    # if this video does not exist.
+    # The API should return back a 400 Bad Request response 
+    # for missing or invalid fields in the request body.
+    # For example, if total_inventory is missing or is not a number
+    reqs = ["title", "release_date", "total_inventory"]
+    request_body = validate_put_request(request,reqs)
+    new_video = validate_model(Video, video_id)
+    result = validate_request_attributes(request_body)
+    if result:
+        db.session.commit()
+
+    return make_response(new_video.to_dict(), 200)
+    
+@video_bp.route("/<video_id>", methods=["DELETE"])
+def delete_video_by_id(video_id):
+    # The API should return back detailed errors and a status 404: Not Found 
+    # if this video does not exist.
+    video = validate_model(Video,video_id)
+
+    db.session.delete(video)
+    db.session.commit()
+
+    return make_response({
+        "id" : video.id,
+        "message": f"Video #{video_id} successfully deleted"
+        }, 200)
