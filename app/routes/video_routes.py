@@ -38,14 +38,14 @@ def custom_query(cls, approvedsortinig, filters={}):
         filters.update(request.args.getlist('filter'))
 
     if cls is Rental: 
-        join_id=None
+        #join_id=None
         join_class=None
         if filters.get("customer_id"):
             join_class=Video
-            join_id=join_class.__name__.lower() + "_id"
+        #    join_id=join_class.__name__.lower() + "_id"
         elif filters.get("video_id"):
             join_class=Customer
-            join_id=join_class.__name__.lower() + "_id"
+        #    join_id=join_class.__name__.lower() + "_id"
         
         if not hasattr(cls,sort):
             find_att=[Customer,Video,Rental]
@@ -131,8 +131,8 @@ def delete_a_video(video_id):
 @videos_bp.route("/<video_id>/rentals", methods=["GET"])
 def get_rentals_by_video(video_id):
     video = validate_model(Video, video_id)
-    query = custom_query(Rental,['id','name','postal_code', 'registered_at'],{"video_id":video.id, "status": Rental.RentalStatus.CHECKOUT})
-    
+    query = custom_query(Rental,['id','name','postal_code'],{"video_id":video.id, "status": Rental.RentalStatus.CHECKOUT})
+
     response = []
     for rental in query:
         customer = validate_model(Customer, rental.customer_id)
