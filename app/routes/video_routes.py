@@ -5,6 +5,68 @@ from app.models.customer import Customer
 from app.routes.rental_routes import query_rentals
 from flask import Blueprint, jsonify, abort, make_response, request
 
+def custom_query(cls, approvedsortinig, filters=None):
+    #list of accepted sort paramas
+    valid_sort=set(approvedsortinig)
+    custom_querys=None
+
+    #getting sort and pagnation args, with defults and types
+    sort=request.args.get('sort', 'id')
+    page = request.args.get('page',1,type=int)
+
+    count=request.args.get('per_page',100, type=int)
+    if request.args.get('count'):
+        count=request.args.get('count',100, type=int)
+    
+    if request.args.get('page_num'):
+        page=request.args.get('page_num',1, type=int)
+
+    #making id if not valid.
+    if sort not in valid_sort: sort= 'id'
+    #checking to see if class is the orderby attricute
+    order_cls=cls
+
+    if not hasattr(cls,sort):
+        find_att=[Customer,Video,Rental]
+        for object in find_att:
+            if hasattr(object,sort):
+                order_cls=object
+
+
+
+    #are there filters?
+    if request.args.get('filter'):
+        filters=request.args.getlist('filter')
+    if filters: 
+        join_id=None
+        join_class=None
+        if filters.get("customer_id"):
+            join_class=Video
+            join_id=join_class.__name__.lower() + "_id"
+        elif filters.get("video_id"):
+            join_class=Customer
+            join_id=join_class.__name__.lower() + "_id"
+
+        if join_class: 
+            custom_querys=db.session.query(cls).filter_by(**filters).join(join_class,join_class.id==getattr(
+                    cls,join_id), full=True).order_by(
+                getattr(order_cls,sort)).paginate(page=page,per_page=count,error_out=False) 
+
+        else:
+            custom_querys=db.session.query(cls).filter_by(**filters).order_by(
+                getattr(order_cls,sort)).paginate(page,count,False)
+        
+    elif order_cls !=cls:
+            custom_querys=db.sessoin.query(cls).join(join_class,join_class.id==getattr(
+                    cls,join_id), full=True).order_by(
+                getattr(order_cls,sort)).paginate(page,count,False)
+    else:
+        custom_querys=cls.query.order_by(getattr(
+            order_cls,sort)).paginate(page,count,False)
+    
+    query=custom_querys.items
+    return query
+
 
 videos_bp = Blueprint("videos_bp", __name__, url_prefix="/videos")
 
@@ -74,11 +136,12 @@ def delete_a_video(video_id):
 @videos_bp.route("/<video_id>/rentals", methods=["GET"])
 def get_rentals_by_video(video_id):
     video = validate_model(Video, video_id)
-    query = query_rentals({"video_id":video.id, "status": Rental.RentalStatus.CHECKOUT})
+    query = custom_query(Rental,['id','name','postal_code', 'registered_at'],{"video_id":video.id, "status": Rental.RentalStatus.CHECKOUT})
+    
     response = []
     for rental in query:
         customer = validate_model(Customer, rental.customer_id)
-        rental_info = customer.to_dict()
+        rental_info =  customer.to_dict()
         rental_info["due_date"] = rental.due_date
         response.append(rental_info)
     return jsonify(response)
