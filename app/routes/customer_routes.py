@@ -76,3 +76,9 @@ def delete_customer(customer_id):
     db.session.commit()
     return customer.to_dict()
     #return make_response(jsonify(f"Customer {customer.id} info successfully deleted"), 200)
+
+
+# GET /customers/<id>/rentals
+# List the videos a customer currently has checked out
+# validate customer_id
+

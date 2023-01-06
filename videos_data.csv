@@ -1,0 +1,25 @@
+{
+    "title": "2001: A Space Odyssey",
+    "release_date": "1968",
+    "total_inventory": 5
+},
+{
+    "title": "The Godfather",
+    "release_date": "1972",
+    "total_inventory": 4
+},
+{
+    "title": "Citizen Kane",
+    "release_date": "1941",
+    "total_inventory": 6
+},
+{
+    "title": "Raiders of the Lost Ark",
+    "release_date": "1981",
+    "total_inventory": 2
+},
+{
+    "title": "La Dolce Vita",
+    "release_date": "1960",
+    "total_inventory": 1
+}

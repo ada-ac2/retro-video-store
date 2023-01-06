@@ -105,3 +105,7 @@ def delete_video(id):
     db.session.commit()
     # return make_response(jsonify(f"Video #{id} successfully deleted"))
     return video.to_dict()
+
+# GET /videos/<id>/rentals
+# List the customers who currently have the video checked out
+# validate video_id

@@ -32,3 +32,16 @@ def validate_customer_user_input(customer_value):
         invalid_dict["details"] = "Request body must include phone."
 
     return invalid_dict
+
+# Validate post rentals/check_out 
+# Required Request Body Parameters: customer_id, video_id
+# Return 404: Not Found if eather not exist
+# Return 400: Bad Request if the video does not have any available 
+# inventory before check out
+
+# Validate post rentals/check_in 
+# Required Request Body Parameters: customer_id, video_id
+# Return 404: Not Found if eather not exist
+# Return 400: Bad Request if the video and customer do not match 
+# a current rental
+
