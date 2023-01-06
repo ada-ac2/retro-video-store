@@ -4,7 +4,9 @@ class Video(db.Model):
     id = db.Column(db.Integer, primary_key=True,autoincrement = True)
     title = db.Column(db.String)
     release_date = db.Column(db.DateTime)
-    total_inventory = db.Column(db.Integer)
+    total_inventory = db.Column(db.Integer, default=0)
+
+    rentals = db.relationship('Rental', back_populates='video')
 
     def to_dict(self):
         video_as_dict = {}
@@ -15,6 +17,16 @@ class Video(db.Model):
 
         return video_as_dict
 
+    def get_available_video_inventory(self):
+        num_of_rentals = 0
+        for rental in self.rentals:
+            if rental.is_checked_out:
+                num_of_rentals += 1
+        return self.total_inventory - num_of_rentals
+
+    @classmethod
+    def get_id(cls, id):
+        return Video.query.get(id)
 
     @classmethod
     def from_dict(cls, video_data):

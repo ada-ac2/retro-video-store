@@ -9,6 +9,7 @@ class Customer(db.Model):
     postal_code = db.Column(db.String)
     phone = db.Column(db.String)
     videos_checked_out_count = db.Column(db.Integer, default = 0)
+    rentals = db.relationship('Rental', back_populates='customer')
         
     def to_dict(self):
         customer_as_dict = {}
@@ -28,7 +29,17 @@ class Customer(db.Model):
                         phone = customer_data["phone"])
         return new_customer
 
+    @classmethod
+    def get_id(cls, id):
+        return Customer.query.get(id)
 
+    
+    def get_videos_checked_out_count(self):
+        num_of_rentals = 0
+        for rental in self.rentals:
+            if rental.is_checked_out:
+                num_of_rentals += 1
+        return num_of_rentals
 # #  {
 #     "id": 1,
 #     "name": "Shelley Rocha",

@@ -32,6 +32,11 @@ def validate_video_request_body(request_body):
         not in request_body:
         abort(make_response("Invalid Request", 400))
 
+#validation for Rental routes
+#def validate_rental_request_body(request_body):
+    #if "customer_id" not in request_body or "video_id" not in request_body:
+        #abort(make_response("Invalid Request", 400)) 
+
 #--------------------------- Customer Route Functions -----------------------------------------
 
 @customers_bp.route("", methods=["POST"])
@@ -158,13 +163,42 @@ def delete_video_by_id(video_id):
     return {"id": video.id}
 
 #--------------------------- Rentals Route Functions -----------------------------------------
-@rentals_bp.route("", methods=["GET"])
-def create_rental():
+@rentals_bp.route("/check-out", methods=["POST"])
+def checkout_video():
     request_body = request.get_json()
-    new_rental = Rental(
-        name=request_body["name"],
-    )
-    db.session.add(new_rental)
-    db.session.commit()
+    if "customer_id" not in request_body or "video_id" not in request_body:
+        return {"message": "Invalid: customer_id or video_id not found in request body"}, 400
+    video = Video.get_id(request_body["video_id"])
+    customer = Customer.get_id(request_body["customer_id"])
+    if not video or not customer:
+        return {"message": "video_id or customer_id not found"}, 404
+    if not video.get_available_video_inventory():
+        return {"message": "Could not perform checkout"}, 400
+    res = Rental.check_out(
+        video_id = video.id,
+        customer_id=customer.id
+        )
+    return res
 
-    return make_response(jsonify(f"Rental {new_rental}"))
+@rentals_bp.route("/check-in", methods=["POST"])
+def checkin_videos():
+    request_body = request.get_json()
+    no_id = ""
+    if "customer_id" not in request_body:
+        no_id = "customer_id"
+    elif "video_id" not in request_body:
+        no_id = "video_id"
+    if no_id:
+        return {"message": f"Invalid, missing {no_id}."}, 400
+
+    video = Video.get_id(request_body["video_id"])
+    customer = Customer.get_id(request_body["customer_id"])
+    if not video or not customer:
+        return {"message": "video_id or customer_id not found"}, 404
+
+    res = Rental.check_in(
+        video_id = video.id,
+        customer_id = customer.id
+    )
+
+    return res
