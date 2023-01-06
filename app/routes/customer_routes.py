@@ -5,51 +5,59 @@ from app.models.rental import Rental
 from app.routes.rental_routes import query_rentals
 from flask import Blueprint, jsonify, abort, make_response, request
 
-def custom_query(cls, approvedsortinig, filters=None):
+def custom_query(cls, approvedsortinig, filters={}):
     #list of accepted sort paramas
     valid_sort=(approvedsortinig)
     custom_querys=None
 
     #getting sort and pagnation args, with defults and types
     sort=request.args.get('sort', 'id')
-    page = request.args.get('page_num', 1, type=int)
+    page = None
     count=None
+    if request.args.get("page"):
+        page=request.args.get("page", 1, type=int)
+    elif request.args.get('page_num'):
+        page=request.args.get('page_num', 1, type=int)
+    else: page=1
     if request.args.get("count"):
         count=request.args.get("count", 100, type=int)
-    else:
+    elif request.args.get('per_page'):
         count=request.args.get('per_page', 100, type=int)
+    else: count=100
 
     #making id if not valid.
     if sort not in valid_sort: sort= 'id'
     #checking to see if class is the orderby attricute
     order_cls=cls
 
-    if not hasattr(cls,sort):
-        find_att=[Customer,Video,Rental]
-        for object in find_att:
-            if hasattr(object,sort):
-                order_cls=object
 
 
 
     #are there filters?
     if request.args.get('filter'):
-        filters=request.args.getlist('filter')
+        filters.update(request.args.getlist('filter'))
     if cls is Rental: 
         join_id=None
         join_class=None
         if filters.get("customer_id"):
             join_class=Video
             join_id=join_class.__name__.lower() + "_id"
-        elif filters.get("video_id"):
+        else:
             join_class=Customer
             join_id=join_class.__name__.lower() + "_id"
+        
+        if not hasattr(cls,sort):
+            find_att=[Customer,Video,Rental]
+            for object in find_att:
+                if hasattr(object,sort):
+                    order_cls=object
+                    break
 
             
         custom=db.session.query(cls).filter_by(**filters).join(join_class,join_class.id==getattr(
-                cls,join_id), full=True).order_by(
+                cls,join_id)).order_by(
             getattr(order_cls,sort))
-        custom_querys=custom.paginate(page,count,False)
+        custom_querys=custom.paginate(page=page,per_page=count,error_out=False)
     else:
         custom_querys=cls.query.order_by(getattr(
             order_cls,sort)).paginate(page,count,False)
