@@ -1,15 +1,15 @@
 from app import db
 
 class Customer(db.Model):
-    __tablename__ = 'customer'
+    __tablename__ = 'customers'
     id = db.Column(db.Integer, primary_key=True, autoincrement = True)
     name = db.Column(db.String, nullable = False)
     registered_at = db.Column(db.DateTime(timezone = True))
     postal_code = db.Column(db.String, nullable = False)
     phone = db.Column(db.String, nullable = False)
     videos_checked_out_count = db.Column(db.Integer)
-    video = db.relationship("Video", secondary="rental", back_populates="customer")
-
+    videos = db.relationship("Video", secondary="rentals", back_populates="customers")
+    
     def to_dict(self):
         customer_as_dict = {}
         customer_as_dict["id"] = int(self.id)

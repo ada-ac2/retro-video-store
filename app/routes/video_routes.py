@@ -81,3 +81,16 @@ def delete_video(id):
 # GET /videos/<id>/rentals
 # List the customers who currently have the video checked out
 # validate video_id
+@video_bp.route("/<video_id>/rentals",methods=["GET"])
+def get_customers_who_rent_the_video(video_id):
+    video = validate_model(Video, video_id)
+    
+    rental_response = {}
+    customer_list = []
+    for customer in video.customers:
+        rental_response["name"] = customer.name
+        rental_response["phone"] = customer.phone
+        rental_response["postal_code"] = customer.postal_code
+        rental_response["due_date"] = rental.due_date
+        customer_list.append(rental_response)
+    return customer_list

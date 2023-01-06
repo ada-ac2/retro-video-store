@@ -19,14 +19,12 @@ def get_all_customers():
 
     return jsonify(customers_list), 200
 
-
 # Get the customer info by id (GET /customers/<id>)
 # Return info in JSON format
 @customer_bp.route("/<customer_id>",methods=["GET"] )
 def get_one_customer(customer_id):
     customer = validate_model(Customer, customer_id)
     return customer.to_dict()
-
 
 # Register a customer info (POST /customers)
 # Return sussess message "Customer {name} successfully registered"
@@ -51,7 +49,6 @@ def register_customer():
     
     return new_customer.to_dict(), 201
 
-
 # Update the customer info by id (PUT /customer/<id>)
 # Return sussess message "Customer {id} info successfully udated"
 @customer_bp.route("/<customer_id>",methods=["PUT"] )
@@ -71,7 +68,6 @@ def update_customer(customer_id):
 
     return customer.to_dict()
 
-
 # Delete the customer info by id (DELETE /customer/<id>)
 # Return sussess message "Customer {id} info successfully udated"
 @customer_bp.route("/<customer_id>",methods=["DELETE"])
@@ -81,13 +77,19 @@ def delete_customer(customer_id):
     db.session.commit()
     return customer.to_dict()
 
-
 # Get customer rentals by customer_id (GET /customers/<id>/rentals)
 # Return list the videos a customer currently has checked out - successful
 # Return 404 if customer_id not exist (validate customer_id)
 
-# @customer_bp.route("/<customer_id>/rentals",methods=["GET"])
-# def get_video_rentals_for_customer(customer_id):
-#     customer = validate_model(Customer, customer_id)
-
-#     rentals_list = []
+@customer_bp.route("/<customer_id>/rentals",methods=["GET"])
+def get_video_rentals_for_customer(customer_id):
+    customer = validate_model(Customer, customer_id)
+    
+    rental_response = {}
+    video_list = []
+    for video in customer.videos:
+        rental_response["release_date"] = video.release_date
+        rental_response["title"] = video.title
+        rental_response["due_date"] = rental.due_date
+        video_list.append(rental_response)
+    return video_list

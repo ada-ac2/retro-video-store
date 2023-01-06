@@ -1,12 +1,12 @@
 from app import db
 
 class Video(db.Model):
-    __tablename__ = 'video'
+    __tablename__ = 'videos'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String, nullable=False)
     release_date = db.Column(db.Date, nullable=False)
     total_inventory = db.Column(db.Integer, default=0, nullable=False)
-    customer = db.relationship("Customer", secondary="rental", back_populates="video")    
+    customers = db.relationship("Customer", secondary="rentals", back_populates="videos")    
 
     def to_dict(self):
         video_as_dict = dict()
