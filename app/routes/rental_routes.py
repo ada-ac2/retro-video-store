@@ -42,11 +42,19 @@ def read_all_rentals():
 @rentals_bp.route("/check-out", methods=["POST"])
 def check_out():
 
-    request_body = request.get_json()
-
+    request_body = validate_request_body(Rental, request.get_json())
     customer = validate_model(Customer, request_body["customer_id"])
     video = validate_model(Video, request_body["video_id"])
     
+    # Check video's available inventory
+    if video.total_inventory < 1:
+        abort(make_response({"message": "Could not perform checkout"}, 400))
+    
+    # Update video's available inventory
+    available_inventory = video.total_inventory - 1
+    video.total_inventory = available_inventory
+
+    # Create new rental
     new_rental = Rental(
         customer_id=customer.id,
         video_id=video.id,
@@ -55,12 +63,14 @@ def check_out():
     db.session.add(new_rental)
     db.session.commit()
 
+    # Create entry in CustomerRental table
     new_customer_rental = CustomerRental(
         customer_id=request_body["customer_id"],
         rental_id=new_rental.id
     )
     db.session.add(new_customer_rental)
 
+    # Create entry in VideoRental table
     new_video_rental = VideoRental(
         video_id=request_body["video_id"],
         rental_id=new_rental.id
@@ -68,9 +78,9 @@ def check_out():
 
     db.session.add(new_video_rental)
     
+    # Update customer information
     videos_checked_out_count = 1
     customer.videos_checked_out_count = videos_checked_out_count
-    available_inventory = video.total_inventory - 1
     db.session.commit()
     
     return make_response(jsonify({

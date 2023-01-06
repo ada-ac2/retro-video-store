@@ -16,7 +16,7 @@ def validate_model(cls, model_id):
 
 def validate_request_body(cls, request_body):
     if not request_body:
-        abourt(make_response({"details":f"Request body is empty."}, 400))
+        abort(make_response({"details":f"Request body is empty."}, 400))
 
     attributes = cls.__table__.columns.keys()
     attributes.remove("id")
@@ -24,6 +24,8 @@ def validate_request_body(cls, request_body):
         attributes.remove("registered_at")
     if "videos_checked_out_count" in attributes:
         attributes.remove("videos_checked_out_count")
+    if "due_date" in attributes:
+        attributes.remove("due_date")
     # check whether there are missing attributes in the request body
     for attribute in attributes:
         if attribute not in request_body.keys():
