@@ -1,46 +1,10 @@
 from app import db
 from app.models.customer import Customer
+from .customer_routes import validate_model, validate_customer_user_input
 from flask import Blueprint, jsonify, abort, make_response, request
 from datetime import datetime
 
 customer_bp = Blueprint("customer_bp", __name__, url_prefix = "/customers")
-
-## Helper functions ##
-
-# Validating the id of the customer: id needs to be int and exists the planet with the id.
-# Returning the valid class instance if valid id
-def validate_model(cls, model_id):
-    try:
-        model_id = int(model_id)
-    except:
-        abort(make_response({"message":f"{cls.__name__} {model_id} invalid"}, 400))
-        #abort(make_response(jsonify(f"{cls.__name__} {model_id} invalid"), 400))
-    class_obj = cls.query.get(model_id)
-    if not class_obj:
-        abort(make_response({"message":f"{cls.__name__} {model_id} was not found"}, 404))
-        #abort(make_response(jsonify(f"{cls.__name__} {model_id} was not found"), 404))
-    return class_obj
-
-# Validating the user input to create or update the customer
-# Returning the valid JSON if valid input
-def validate_input(customer_value):
-    invalid_dict = {}
-    if "name" not in customer_value \
-        or not isinstance(customer_value["name"], str) \
-        or customer_value["name"] == "":
-        invalid_dict["details"] = "Request body must include name."
-    if "postal_code" not in customer_value \
-        or not isinstance(customer_value["postal_code"], str) \
-        or customer_value["postal_code"] == "":
-        invalid_dict["details"] = "Request body must include postal_code."
-    if "phone" not in customer_value \
-        or not isinstance(customer_value["phone"], str) \
-        or customer_value["phone"] == "":
-        invalid_dict["details"] = "Request body must include phone."
-#        return abort(make_response(jsonify("Invalid request"), 400))  
-    return invalid_dict
-
-## Routes functions ##
 
 # Get all customers info (GET /customers)
 # Return JSON list
@@ -65,7 +29,7 @@ def get_one_customer(customer_id):
 @customer_bp.route("", methods = ["POST"])
 def register_customer():
     customer_info = request.get_json()
-    check_invalid_dict = validate_input(customer_info)
+    check_invalid_dict = validate_customer_user_input(customer_info)
 
     if check_invalid_dict:
         abort(make_response(jsonify(check_invalid_dict), 400))
@@ -91,7 +55,7 @@ def register_customer():
 def update_customer(customer_id):
     customer = validate_model(Customer, customer_id)
     request_body = request.get_json()
-    check_invalid_dict = validate_input(request_body)
+    check_invalid_dict = validate_customer_user_input(request_body)
     if check_invalid_dict:
         return abort(make_response(jsonify(check_invalid_dict), 400))
     customer.name = request_body["name"]

@@ -5,7 +5,7 @@ class Video(db.Model):
     title = db.Column(db.String, nullable=False)
     release_date = db.Column(db.Date, nullable=False)
     total_inventory = db.Column(db.Integer, default=0, nullable=False)
-    #customers = db.relationship("Rental", back_populates="video")
+    customers = db.relationship("Rental", back_populates="video")
     #available_inventory = db.Column(db.Integer, default = 0, nullable = False)
 
     def to_dict(self):
