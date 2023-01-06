@@ -6,16 +6,22 @@ class Video(db.Model):
     title = db.Column(db.String, nullable=False)
     release_date = db.Column(db.DateTime, default=datetime.utcnow())
     total_inventory = db.Column(db.Integer, nullable=False)
-    rentals = db.relationship("Rental", back_populates="video_rental")
+    rentals = db.relationship("Rental", back_populates="video")
 
     def to_dict(self):
-        
-        return {
+        video_dict = {
             "id": self.id,
             "title": self.title,
             "release_date": self.release_date,
             "total_inventory": self.total_inventory
         }
+
+        video_rentals = []
+        for rental in self.rentals:
+            video_rentals.append(rental.to_dict())
+        video_dict["rentals"] = video_rentals
+
+        return video_dict
 
     @classmethod
     def from_dict(cls, request_body):

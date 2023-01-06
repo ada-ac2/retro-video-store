@@ -8,11 +8,10 @@ class Customer(db.Model):
     postal_code = db.Column(db.String, nullable=False)
     phone = db.Column(db.String, nullable=False)
     videos_checked_out_count = db.Column(db.Integer)
-    rentals = db.relationship("Rental", back_populates="customer_rental")
-
+    rentals = db.relationship("Rental", back_populates="customer")
 
     def to_dict(self):
-        return {
+        customer_dict = {
             "id": self.id,
             "name": self.name,
             "registered_at": self.registered_at,
@@ -21,6 +20,13 @@ class Customer(db.Model):
             "videos_checked_out_count": self.videos_checked_out_count
         }
 
+        # video_rentals = []
+        # for rental in self.rentals:
+
+        #     video_rentals.append(rental)
+        # customer_dict["rentals"] = video_rentals
+
+        return customer_dict
 
     @classmethod
     def from_dict(cls, request_body):

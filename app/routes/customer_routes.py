@@ -1,5 +1,7 @@
 from app import db
 from app.models.customer import Customer
+from app.models.video import Video
+from app.models.rental import Rental
 from app.models.model_helpers import *
 from flask import Blueprint, jsonify, abort, make_response, request
 
@@ -77,7 +79,7 @@ def update_one_customer(customer_id):
 
     return make_response(jsonify(customer_info.to_dict()), 200)
 
-@customers_bp.route("/<customer_id>",methods=["DELETE"])
+@customers_bp.route("/<customer_id>", methods=["DELETE"])
 def delete_one_customer(customer_id):
     customer_info = validate_model(Customer, customer_id)
     
@@ -85,3 +87,21 @@ def delete_one_customer(customer_id):
     db.session.commit()
     
     return make_response(jsonify(customer_info.to_dict()), 200)
+
+@customers_bp.route("/<customer_id>/rentals", methods=["GET"])
+def get_current_rentals(customer_id):
+    customer = validate_model(Customer, customer_id)
+    # print(customer.rentals[0].video.title)
+    
+    # rental_query = Rental.query.filter_by(customer_id=customer.id)
+    # if not rental_query:
+    #     abort(make_response({"message": f"No outstanding rentals for customer {customer.id}"}, 400))
+    
+    rentals_response = []
+
+    for rental in customer.rentals:
+        video = validate_model(Video, rental.video_id)
+        print(video.to_dict())
+        rentals_response.append(video.to_dict())
+        
+    return jsonify(rentals_response)
