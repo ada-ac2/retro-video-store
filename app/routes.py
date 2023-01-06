@@ -168,7 +168,7 @@ def checkout_one_video():
     db.session.add(new_rental)
     db.session.commit() 
 
-    return make_response(jsonify(new_rental.to_dict()), 201)
+    return make_response(jsonify(new_rental.to_dict()), 200)
 
 
 @rental_bp.route("/check-in", methods = ["POST"])
