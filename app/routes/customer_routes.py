@@ -30,12 +30,10 @@ def custom_query(cls, approvedsortinig, filters={}):
     #checking to see if class is the orderby attricute
     order_cls=cls
 
-
-
-
     #are there filters?
     if request.args.get('filter'):
         filters.update(request.args.getlist('filter'))
+
     if cls is Rental: 
         join_id=None
         join_class=None
@@ -54,10 +52,8 @@ def custom_query(cls, approvedsortinig, filters={}):
                     break
 
             
-        custom=db.session.query(cls).filter_by(**filters).join(join_class,join_class.id==getattr(
-                cls,join_id)).order_by(
-            getattr(order_cls,sort))
-        custom_querys=custom.paginate(page=page,per_page=count,error_out=False)
+        custom_querys=cls.query.filter_by(**filters).join(join_class).order_by(
+            getattr(order_cls,sort)).paginate(page=page,per_page=count,error_out=False)
     else:
         custom_querys=cls.query.order_by(getattr(
             order_cls,sort)).paginate(page,count,False)
@@ -140,7 +136,7 @@ def update_customer(customer_id):
     return make_response(customer.to_dict(), 200)
 
 @customers_bp.route("/<customer_id>/rentals", methods=["GET"])
-def get_rentals_by_video(customer_id):
+def get_rentals_by_customer(customer_id):
     customer = validate_model(Customer, customer_id)
     query = custom_query(Rental,['id','title','release_date'],{"customer_id":customer.id, "status": Rental.RentalStatus.CHECKOUT})
     

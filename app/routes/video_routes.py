@@ -5,6 +5,8 @@ from app.models.customer import Customer
 from app.routes.rental_routes import query_rentals
 from flask import Blueprint, jsonify, abort, make_response, request
 
+videos_bp = Blueprint("videos_bp", __name__, url_prefix="/videos")
+
 def custom_query(cls, approvedsortinig, filters={}):
     #list of accepted sort paramas
     valid_sort=(approvedsortinig)
@@ -17,12 +19,13 @@ def custom_query(cls, approvedsortinig, filters={}):
     if request.args.get("page"):
         page=request.args.get("page", 1, type=int)
     elif request.args.get('page_num'):
-        page=request.args.get('page_num', 1, type=int)
+        page=request.args.get('page_num',1, type=int)
     else: page=1
+
     if request.args.get("count"):
-        count=request.args.get("count", 100, type=int)
+        count=request.args.get("count",  type=int)
     elif request.args.get('per_page'):
-        count=request.args.get('per_page', 100, type=int)
+        count=request.args.get('per_page', type=int)
     else: count=100
 
     #making id if not valid.
@@ -30,19 +33,17 @@ def custom_query(cls, approvedsortinig, filters={}):
     #checking to see if class is the orderby attricute
     order_cls=cls
 
-
-
-
     #are there filters?
     if request.args.get('filter'):
         filters.update(request.args.getlist('filter'))
+
     if cls is Rental: 
         join_id=None
         join_class=None
         if filters.get("customer_id"):
             join_class=Video
             join_id=join_class.__name__.lower() + "_id"
-        else:
+        elif filters.get("video_id"):
             join_class=Customer
             join_id=join_class.__name__.lower() + "_id"
         
@@ -54,10 +55,8 @@ def custom_query(cls, approvedsortinig, filters={}):
                     break
 
             
-        custom=db.session.query(cls).filter_by(**filters).join(join_class,join_class.id==getattr(
-                cls,join_id)).order_by(
-            getattr(order_cls,sort))
-        custom_querys=custom.paginate(page=page,per_page=count,error_out=False)
+        custom_querys=cls.query.filter_by(**filters).join(join_class).order_by(
+            getattr(order_cls,sort)).paginate(page=page,per_page=count,error_out=False)
     else:
         custom_querys=cls.query.order_by(getattr(
             order_cls,sort)).paginate(page,count,False)
@@ -65,8 +64,6 @@ def custom_query(cls, approvedsortinig, filters={}):
     query=custom_querys.items
     return query
 
-
-videos_bp = Blueprint("videos_bp", __name__, url_prefix="/videos")
 
 def validate_model(cls, model_id):
     try:
@@ -83,7 +80,7 @@ def validate_model(cls, model_id):
 
 @videos_bp.route("", methods=["GET"])
 def get_all_video():
-    videos = Video.query.all()
+    videos = custom_query(Video, ['id','title','release_date'])
     videos_response = []
     for video in videos:
         videos_response.append(video.to_dict())
