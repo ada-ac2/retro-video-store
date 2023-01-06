@@ -40,7 +40,7 @@ def custom_query(cls, approvedsortinig, filters=None):
     #are there filters?
     if request.args.get('filter'):
         filters=request.args.getlist('filter')
-    if filters: 
+    if  cls is Rental: 
         join_id=None
         join_class=None
         if filters.get("customer_id"):
@@ -50,19 +50,11 @@ def custom_query(cls, approvedsortinig, filters=None):
             join_class=Customer
             join_id=join_class.__name__.lower() + "_id"
 
-        if join_class: 
-            custom_querys=db.session.query(cls).filter_by(**filters).join(join_class,join_class.id==getattr(
-                    cls,join_id)).order_by(
-                getattr(order_cls,sort)).paginate(page=page,per_page=count,error_out=False) 
-
-        else:
-            custom_querys=db.session.query(cls).filter_by(**filters).order_by(
-                getattr(order_cls,sort)).paginate(page,count,False)
         
-    elif order_cls !=cls:
-            custom_querys=db.sessoin.query(cls).join(join_class,join_class.id==getattr(
-                    cls,join_id), full=True).order_by(
-                getattr(order_cls,sort)).paginate(page,count,False)
+        custom=cls.query.filter_by(**filters).join(join_class,join_class.id==getattr(
+                cls,join_id), full=True).order_by(
+            getattr(order_cls,sort))
+        custom_querys=custom.paginate(page,count,False)
     else:
         custom_querys=cls.query.order_by(getattr(
             order_cls,sort)).paginate(page,count,False)
