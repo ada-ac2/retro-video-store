@@ -12,14 +12,17 @@ def custom_query(cls, approvedsortinig, filters=None):
 
     #getting sort and pagnation args, with defults and types
     sort=request.args.get('sort', 'id')
-    page = request.args.get('page',1,type=int)
+    if request.args.get("page"):
+        page=request.args.get("page", 1, type=int)
+    elif request.args.get('page_num'):
+        page=request.args.get('page_num', 100, type=int)
+    else: page=1
+    if request.args.get("count"):
+        count=request.args.get("count", 100, type=int)
+    elif request.args.get('per_page'):
+        count=request.args.get('per_page', 100, type=int)
+    else: count=100
 
-    count=request.args.get('per_page',100, type=int)
-    if request.args.get('count'):
-        count=request.args.get('count',100, type=int)
-    
-    if request.args.get('page_num'):
-        page=request.args.get('page_num',1, type=int)
 
     #making id if not valid.
     if sort not in valid_sort: sort= 'id'
@@ -49,7 +52,7 @@ def custom_query(cls, approvedsortinig, filters=None):
 
         if join_class: 
             custom_querys=db.session.query(cls).filter_by(**filters).join(join_class,join_class.id==getattr(
-                    cls,join_id), full=True).order_by(
+                    cls,join_id)).order_by(
                 getattr(order_cls,sort)).paginate(page=page,per_page=count,error_out=False) 
 
         else:
