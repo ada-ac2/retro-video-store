@@ -85,7 +85,7 @@ def check_out():
     
     return make_response(jsonify({
         "customer_id": customer.id,
-        "video_id": new_rental.video_id,
+        "video_id": video.id,
         "due_date": new_rental.due_date,
         "videos_checked_out_count": customer.videos_checked_out_count,
         "available_inventory": available_inventory
@@ -98,48 +98,42 @@ def check_in():
     customer = validate_model(Customer, request_body["customer_id"])
     video = validate_model(Video, request_body["video_id"])
     
-    
-    # Check video's available inventory
-    if video.total_inventory < 1:
-        abort(make_response({"message": "Could not perform checkout"}, 400))
-    
+    rental_query = Rental.query
+    if not rental_query:
+        abort(make_response({"message": f"No outstanding rentals for customer {customer.id} and video {video.id}"}), 400)
+    rental_query = Rental.query.filter_by(customer_id=customer.id)
+    if not rental_query:
+        abort(make_response({"message": f"No outstanding rentals for customer {customer.id} and video {video.id}"}), 400)
+    rental_query = Rental.query.filter_by(video_id=video.id)
+    if not rental_query:
+        abort(make_response({"message": f"No outstanding rentals for customer {customer.id} and video {video.id}"}), 400)
+
+    rental_to_remove = rental_query[0]
+
+
     # Update video's available inventory
-    available_inventory = video.total_inventory - 1
-    video.total_inventory = available_inventory
+    video.total_inventory += 1
+    available_inventory = video.total_inventory
 
-    # Create new rental
-    new_rental = Rental(
-        customer_id=customer.id,
-        video_id=video.id,
-        )
+    customer_rental_query = CustomerRental.query.filter_by(rental_id=rental_to_remove.id)
+    
+    db.session.delete(customer_rental_query[0])
 
-    db.session.add(new_rental)
-    db.session.commit()
-
-    # Create entry in CustomerRental table
-    new_customer_rental = CustomerRental(
-        customer_id=customer.id,
-        rental_id=new_rental.id
-    )
-    db.session.add(new_customer_rental)
-
-    # Create entry in VideoRental table
-    new_video_rental = VideoRental(
-        video_id=video.id,
-        rental_id=new_rental.id
-    )
-
-    db.session.add(new_video_rental)
+    video_rental_query = VideoRental.query.filter_by(rental_id=rental_to_remove.id)
+    
+    db.session.delete(video_rental_query[0])
     
     # Update customer information
-    videos_checked_out_count = customer.videos_checked_out_count + 1
-    customer.videos_checked_out_count = videos_checked_out_count
-    db.session.commit()
     
+    videos_checked_out_count = customer.videos_checked_out_count - 1
+    customer.videos_checked_out_count = videos_checked_out_count
+    
+    db.session.delete(rental_to_remove)
+    db.session.commit()
+
     return make_response(jsonify({
         "customer_id": customer.id,
-        "video_id": new_rental.video_id,
-        "due_date": new_rental.due_date,
-        "videos_checked_out_count": customer.videos_checked_out_count,
+        "video_id": video.id,
+        "videos_checked_out_count": videos_checked_out_count,
         "available_inventory": available_inventory
         }), 200)
