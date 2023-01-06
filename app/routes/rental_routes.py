@@ -30,6 +30,7 @@ def extract_query(query_results):
     for object in query_results:
         response.append(object.to_dict())
     return response
+    
 #calculate avail inventory
 def availabl_inventory(video):
     vids_out = query_rentals({"video_id":video.id, "status":Rental.RentalStatus.CHECKOUT})
