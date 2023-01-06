@@ -148,17 +148,19 @@ def checkout_one_video():
         customer = validate_model(Customer, request_body["customer_id"])
         video = validate_model(Video, request_body["video_id"])
 
+        #avaliable inventory = total inventory - total checkedout  
         available_to_rent = video.total_inventory - Rental.query.filter_by(video_id=video.id).count()
         if available_to_rent < 1: 
             abort(make_response({"message" : "Could not perform checkout"}, 400))
-
+        
+        # update customer database 
         customer.videos_checked_out_count += 1
         
         new_rental = Rental(
             customer_id = customer.id,
             video_id = video.id, 
             videos_checked_out_count = customer.videos_checked_out_count, 
-            available_inventory = available_to_rent - 1 
+            available_inventory = available_to_rent - 1  # Decrement current available_inventory 
         )
     except KeyError as keyerror:
         abort(make_response({"details" : f"Request body must include {keyerror.args[0]}."}, 400))
@@ -166,7 +168,7 @@ def checkout_one_video():
     db.session.add(new_rental)
     db.session.commit() 
 
-    return new_rental.to_dict()
+    return make_response(jsonify(new_rental.to_dict()), 201)
 
 
 @rental_bp.route("/check-in", methods = ["POST"])
@@ -177,16 +179,18 @@ def check_in_one_video():
         customer = validate_model(Customer, request_body["customer_id"])
         video = validate_model(Video, request_body["video_id"])
 
+        # Decrement customer's videos checked out count when they return the video 
         customer.videos_checked_out_count -= 1 
+        # Increment inventory when video is returned 
         available_inventory = video.total_inventory - Rental.query.filter_by(video_id=video.id).count() + 1 
-
+        # find the rental record that needs to be deleted 
         to_delete_rental = Rental.query.filter_by(video_id=video.id, customer_id = customer.id).first() 
 
         if to_delete_rental:
             db.session.delete(to_delete_rental)
             db.session.commit() 
         else: 
-            abort(make_response({"message": "No outstanding rentals for customer 1 and video 1"}, 400))
+            abort(make_response({"message": f"No outstanding rentals for customer {customer.id} and video {video.id}"}, 400))
 
     except KeyError as keyerror:
         abort(make_response({"details" : f"Request body must include {keyerror.args[0]}."}, 400))
