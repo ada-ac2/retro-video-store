@@ -2,9 +2,12 @@ from flask import Blueprint, jsonify, make_response, request, abort
 from app import db
 from app.models.customer import Customer
 from app.models.video import Video
+from app.models.rental import Rental
+
 
 customers_bp = Blueprint("customers_bp", __name__, url_prefix="/customers")
 videos_bp = Blueprint("videos_bp", __name__, url_prefix="/videos")
+rental_bp = Blueprint("rental_bp", __name__, url_prefix="/rentals")
 
 def validate_model(cls, model_id):
     try:
@@ -60,13 +63,7 @@ def update_one_customer(customer_id):
         abort(make_response({"details":f"Request body must include {keyerror.args[0]}."}, 400))
 
     db.session.commit()
-    return {
-        "id" : customer.id,
-        "name": customer.name,
-        "postal_code": customer.postal_code,
-        "phone": customer.phone,
-        "register_at": customer.register_at, 
-    }
+    return make_response(jsonify(customer.to_dict()),200) 
 
 @customers_bp.route("/<customer_id>", methods=["DELETE"])
 def delete_one_customer(customer_id):
@@ -137,3 +134,101 @@ def delete_one_video(video_id):
     db.session.commit()
 
     return {"id": video.id}
+
+
+# --------------------------------
+# ----------- Rentals -------------
+# --------------------------------
+
+@rental_bp.route("/check-out", methods = ["POST"])
+def checkout_one_video():
+    request_body = request.get_json()
+    
+    try:
+        customer = validate_model(Customer, request_body["customer_id"])
+        video = validate_model(Video, request_body["video_id"])
+
+        available_to_rent = video.total_inventory - Rental.query.filter_by(video_id=video.id).count()
+        if available_to_rent < 1: 
+            abort(make_response({"message" : "Could not perform checkout"}, 400))
+
+        customer.videos_checked_out_count += 1
+        
+        new_rental = Rental(
+            customer_id = customer.id,
+            video_id = video.id, 
+            videos_checked_out_count = customer.videos_checked_out_count, 
+            available_inventory = available_to_rent - 1 
+        )
+    except KeyError as keyerror:
+        abort(make_response({"details" : f"Request body must include {keyerror.args[0]}."}, 400))
+
+    db.session.add(new_rental)
+    db.session.commit() 
+
+    return new_rental.to_dict()
+
+
+@rental_bp.route("/check-in", methods = ["POST"])
+def check_in_one_video(): 
+    request_body = request.get_json() 
+
+    try:
+        customer = validate_model(Customer, request_body["customer_id"])
+        video = validate_model(Video, request_body["video_id"])
+
+        customer.videos_checked_out_count -= 1 
+        available_inventory = video.total_inventory - Rental.query.filter_by(video_id=video.id).count() + 1 
+
+        to_delete_rental = Rental.query.filter_by(video_id=video.id, customer_id = customer.id).first() 
+
+        if to_delete_rental:
+            db.session.delete(to_delete_rental)
+            db.session.commit() 
+        else: 
+            abort(make_response({"message": "No outstanding rentals for customer 1 and video 1"}, 400))
+
+    except KeyError as keyerror:
+        abort(make_response({"details" : f"Request body must include {keyerror.args[0]}."}, 400))
+
+    return {
+                "customer_id": customer.id,
+                "video_id": video.id,
+                "videos_checked_out_count": customer.videos_checked_out_count,
+                "available_inventory": available_inventory 
+            }, 200 
+
+@customers_bp.route("<id>/rentals", methods = ["GET"])
+# List the videos a customer currently has checked out 
+def videos_customer_checked_out(id): 
+    customer = validate_model(Customer, id)
+
+    list_videos = [] 
+    for video in customer.videos:
+        list_videos.append(
+            {
+            "release_date" : video.release_date,
+            "title" : video.title, 
+            "due_date" : Rental.query.filter_by(customer_id = customer.id, video_id = video.id).first().due_date
+            })    
+
+    return make_response(jsonify(list_videos), 200) 
+
+@videos_bp.route("<id>/rentals", methods = ["GET"])
+# List the customers who currently have the video checked out
+def customers_have_the_video_checked_out(id): 
+    video = validate_model(Video, id)
+    
+    customer_list = []
+    for customer in video.customers: 
+        customer_list.append(
+        {
+            "due_date": Rental.query.filter_by(customer_id = customer.id, video_id = video.id).first().due_date,
+            "name": customer.name,
+            "phone": customer.phone,
+            "postal_code": customer.postal_code,
+        }
+        )
+
+    return make_response(jsonify(customer_list), 200) 
+
