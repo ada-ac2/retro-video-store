@@ -138,21 +138,21 @@ def one_returned_video(app, client, one_customer, second_video):
     })
 
 @pytest.fixture
-def customer_one_video_three(app, client, one_customer, three_copies_video):
+def customer_one_video_three(app, client, one_customer, five_copies_video):
     response = client.post("/rentals/check-out", json={
         "customer_id": 1,
         "video_id": 1
     })
 
 @pytest.fixture
-def customer_two_video_three(app, client, second_customer, three_copies_video):
+def customer_two_video_three(app, client, second_customer, five_copies_video):
     response = client.post("/rentals/check-out", json={
         "customer_id": 2,
         "video_id": 1
     })
 
 @pytest.fixture
-def customer_three_video_three(app, client, third_customer, three_copies_video):
+def customer_three_video_three(app, client, third_customer, five_copies_video):
     response = client.post("/rentals/check-out", json={
         "customer_id": 3,
         "video_id": 1
