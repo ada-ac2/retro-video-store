@@ -489,7 +489,7 @@ def test_get_rentals_invalid_p_param(client, one_checked_out_video, second_check
     assert response_body[1]["total_inventory"] == VIDEO_2_INVENTORY
 
 # CUSTOMERS
-def test_get_renters_no_query_params_sorts_by_id(client, customer_one_video_three, customer_two_video_three, customer_three_video_three):
+def test_get_rentals_no_query_params_sorts_by_id(client, customer_one_video_three, customer_two_video_three, customer_three_video_three):
     # Act
     response = client.get("/videos/1/rentals")
     response_body = response.get_json()
