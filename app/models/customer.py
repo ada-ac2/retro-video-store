@@ -2,14 +2,14 @@ from app import db
 from datetime import date
 
 class Customer(db.Model):
-    __tablename__ = 'customers'
     id = db.Column(db.Integer, primary_key=True, autoincrement = True)
     name = db.Column(db.String, nullable = False)
     registered_at = db.Column(db.DateTime(timezone = True))
     postal_code = db.Column(db.String, nullable = False)
     phone = db.Column(db.String, nullable = False)
     videos_checked_out_count = db.Column(db.Integer)
-    videos = db.relationship("Video", secondary="rentals", back_populates="customers")
+    
+    videos = db.relationship("Rental")
     
     def to_dict(self):
         customer_as_dict = {}

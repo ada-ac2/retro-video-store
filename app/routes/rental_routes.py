@@ -6,11 +6,15 @@ from .validate_routes import validate_model, validate_customer_user_input
 from flask import Blueprint, jsonify, abort, make_response, request
 from datetime import datetime
 
-rental_bp = Blueprint("rental", __name__, url_prefix="/rentals")
+rental_bp = Blueprint("rental_bp", __name__, url_prefix="/rentals")
 
-#POST /rentals/check-out
+# #POST /rentals/check-out
 @rental_bp.route("/check-out", methods = ["POST"])
-def create_rental_check_out(customer_id, video_id):
+def create_rental_check_out():#customer_id, video_id
+    
+    request_body = request.get_json()
+    customer_id = request_body["customer_id"]
+    video_id = request_body["video_id"]
     customer = validate_model(Customer, customer_id)
     video = validate_model(Video, video_id)
 
@@ -34,8 +38,7 @@ def create_rental_check_out(customer_id, video_id):
 
     return rental_response, 200    
 
-
-#POST /rentals/check-in
+# #POST /rentals/check-in
 @rental_bp.route("/check-in", methods = ["POST"])
 def create_rental_check_in(customer_id, video_id):
     customer = validate_model(Customer, customer_id)

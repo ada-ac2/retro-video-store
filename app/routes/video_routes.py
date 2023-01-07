@@ -61,7 +61,6 @@ def update_video(id):
     video.title = request_body["title"]
     video.release_date = request_body["release_date"]
     video.total_inventory = request_body["total_inventory"]
-    video.available_inventory = request_body["available_inventory"]
 
     db.session.commit()
     db.session.refresh(video)
