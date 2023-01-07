@@ -13,15 +13,17 @@ class Rental(db.Model):
 
     def to_dict(self):
         """
-        Returns dictionary of customer data.
+        Returns dictionary of rental data and customer data if customer
         """
-        return {
-            "id": self.id,
-            "customer_id": self.customer_id,
-            "video_id": self.video_id,
-            "due_date": self.due_date,
-            "videos_checked_out_count": self.videos_checked_out_count,
+        rental_dict = {
+                "due_date": self.due_date,
+                "n_video_copies": self.n_video_copies,
         }
+        if self.customer:
+            rental_dict.update(self.customer.to_dict())
+        if self.video:
+            rental_dict.update(self.video.to_dict())
+        return rental_dict
     
     # def check_out_video(self, n):
     #     """
