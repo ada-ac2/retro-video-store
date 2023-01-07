@@ -7,7 +7,7 @@ class Customer(db.Model):
     registered_at = db.Column(db.DateTime(timezone = True))
     postal_code = db.Column(db.String, nullable = False)
     phone = db.Column(db.String, nullable = False)
-    videos_checked_out_count = db.Column(db.Integer)
+    videos_checked_out_count = db.Column(db.Integer, default=0)
     
     videos = db.relationship("Rental")
     
@@ -25,6 +25,7 @@ class Customer(db.Model):
     def from_dict(cls, customer_data):
         new_customer = Customer(name=customer_data["name"],
                         postal_code=customer_data["postal_code"],
-                        phone=customer_data["phone"]
+                        phone=customer_data["phone"],
+                        videos_checked_out_count=customer_data["videos_checked_out_count"]
                         )
         return new_customer

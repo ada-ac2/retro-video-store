@@ -35,9 +35,10 @@ def get_video_by_id(id):
 def create_video():
     request_body = request.get_json()
     check_invalid_record = validate_record(request_body)
+    
     if check_invalid_record:
         abort(make_response(jsonify(check_invalid_record), 400))
-
+    request_body["available_inventory"] = int(request_body["total_inventory"])
     new_video = Video.from_dict(request_body)
     
     db.session.add(new_video)

@@ -35,12 +35,10 @@ def register_customer():
 
     if check_invalid_dict:
         abort(make_response(jsonify(check_invalid_dict), 400))
-    
+
+    customer_info["videos_checked_out_count"] = 0
     new_customer = Customer.from_dict(customer_info)
     
-    if not new_customer.videos_checked_out_count:
-        new_customer.videos_checked_out_count = 0
-
     new_customer.registered_at = date.today()
 
     db.session.add(new_customer)
