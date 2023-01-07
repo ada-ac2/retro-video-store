@@ -31,7 +31,6 @@ def sort_helper(cls, query, is_sort):
 
     return sort_attribute_helper(cls, query, attribute, sort_method)
 
-
 def sort_attribute_helper(cls, query, atr=None, sort_method="asc"):
     if atr:
         if atr == "name":
@@ -73,7 +72,6 @@ def sort_attribute_helper(cls, query, atr=None, sort_method="asc"):
 
     return query
 
-
 def get_all_customer_helper(customer_list):
     customers_response = []
     for customer in customer_list:
@@ -109,6 +107,22 @@ def get_all_videos_rental_customers_helper(customer_list):
         )
     return customer_response
 
+def pagination_helper(page_num_query, count_query, query, get_record_function): 
+    if page_num_query and count_query and page_num_query.isnumeric() and count_query.isnumeric():
+        query = query.paginate(
+            page=int(page_num_query), per_page=int(count_query))
+        customer_response = get_record_function(
+            query.items)
+    elif count_query and count_query.isnumeric() and (not page_num_query or not page_num_query.isnumeric()):
+        query = query.paginate(page=1, per_page=int(count_query))
+        customer_response = get_record_function(
+            query.items)
+    else:
+        query = query.all()
+        customer_response = get_record_function(query)
+
+    return customer_response 
+
 
 def validate_model(cls, model_id):
     try:
@@ -121,6 +135,7 @@ def validate_model(cls, model_id):
 
     abort(make_response(
         {"message": f"{cls.__name__} {model_id} was not found"}, 404))
+
 
 
 # ----------------------------------------------------------------------------------------------------------
@@ -366,17 +381,7 @@ def videos_customer_checked_out(id):
         # Sort by id in ascending order by default
         join_query = join_query.order_by(Video.id.asc())
 
-    if page_num_query and count_query and page_num_query.isnumeric() and count_query.isnumeric():
-        join_query = join_query.paginate(
-            page=int(page_num_query), per_page=int(count_query))
-        videos_response = get_all_videos_helpers(join_query.items)
-    elif count_query and count_query.isnumeric() and (not page_num_query or not page_num_query.isnumeric()):
-        join_query = join_query.paginate(page=1, per_page=int(count_query))
-        videos_response = get_all_videos_helpers(join_query.items)
-    else:
-        join_query = join_query.all()
-        print(join_query)
-        videos_response = get_all_videos_helpers(join_query)
+    videos_response = pagination_helper(page_num_query, count_query, join_query, get_all_videos_helpers)
 
     return make_response(jsonify(videos_response), 200)
 
@@ -398,18 +403,6 @@ def customers_have_the_video_checked_out(id):
         # Sort by id in ascending order by default
         join_query = join_query.order_by(Customer.id.asc())
 
-    if page_num_query and count_query and page_num_query.isnumeric() and count_query.isnumeric():
-        join_query = join_query.paginate(
-            page=int(page_num_query), per_page=int(count_query))
-        customer_response = get_all_videos_rental_customers_helper(
-            join_query.items)
-    elif count_query and count_query.isnumeric() and (not page_num_query or not page_num_query.isnumeric()):
-        join_query = join_query.paginate(page=1, per_page=int(count_query))
-        customer_response = get_all_videos_rental_customers_helper(
-            join_query.items)
-    else:
-        join_query = join_query.all()
-        print(type(join_query))
-        customer_response = get_all_videos_rental_customers_helper(join_query)
-
+    customer_response = pagination_helper(page_num_query, count_query, join_query, get_all_videos_rental_customers_helper)
+    
     return make_response(jsonify(customer_response), 200)
