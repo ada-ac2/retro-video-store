@@ -1,5 +1,6 @@
 from app import db
 from app.models.video import Video
+from app.models.rental import Rental
 from app.routes.customer_routes import validate_model
 from app.routes.customer_routes import validate_request
 from flask import Blueprint, jsonify, abort, make_response, request
@@ -40,7 +41,7 @@ def create_a_new_video():
 
 @video_bp.route("<video_id>", methods=["PUT"])
 def update_a_video(video_id):
-   
+
     video = validate_model(Video, video_id)
 
     reqs = {"title", "release_date", "total_inventory"}
@@ -56,7 +57,7 @@ def update_a_video(video_id):
     
 @video_bp.route("/<video_id>", methods=["DELETE"])
 def delete_video_by_id(video_id):
-   
+
     video = validate_model(Video,video_id)
 
     db.session.delete(video)
@@ -66,3 +67,10 @@ def delete_video_by_id(video_id):
         "id" : video.id,
         "message": f"Video #{video_id} successfully deleted"
         }, 200)
+
+@video_bp.route("<video_id>/rentals", methods=["GET"])
+def display_rentals_by_customer_id(video_id):
+    video = validate_model(Video, video_id)
+    rentals = Rental.query.get(video_id)
+    return make_response(
+        jsonify(rentals.to_dict()), 200)
