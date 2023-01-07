@@ -92,27 +92,24 @@ class Rental(db.Model):
 
     @classmethod
     def check_in(cls, video_id, customer_id):
-        
+        print(video_id,customer_id)
         rental_check_in = cls.query.filter(
             Rental.customer_id==customer_id,
             Rental.video_id==video_id,
             Rental.is_checked_out==True
             ).first()
-        #delete_video_and_customer = Rental.query.filter(Rental.video_id == video.id,Rental.customer_id == customer.id).first()
+        
         video = Video.get_id(video_id)
         customer = Customer.get_id(customer_id)
-
+        print(rental_check_in)
         if not rental_check_in:
             return {
                 "message": f"No outstanding rentals for customer {customer.id} and video {video.id}"
             }, 400
             
         rental_check_in.is_checked_out = False
-        
-        
+
         db.session.delete(rental_check_in)
-        db.session.commit()
-        db.session.add([video, customer, rental_check_in])
         db.session.commit()
 
         videos_checked_out_count = customer.get_videos_checked_out_count()
@@ -124,3 +121,5 @@ class Rental(db.Model):
             "videos_checked_out_count": videos_checked_out_count,
             "available_inventory": available_video_inventory
         }, 200
+
+        
