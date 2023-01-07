@@ -1,10 +1,10 @@
 from app import db
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class Rental(db.Model):
     #__tablename__ = 'rental_table'
     id = db.Column(db.Integer, primary_key=True)
-    due_date = db.Column(db.DateTime, nullable = False) 
+    due_date = db.Column(db.DateTime) 
 
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'))
     customers = db.relationship("Customer", back_populates="videos")
@@ -20,3 +20,10 @@ class Rental(db.Model):
         rental_as_dict["due_date"] = self.due_date
 
         return rental_as_dict
+
+    @classmethod
+    def from_dict(cls, rental_data):
+        new_video = Rental(
+            due_date=rental_data["due_date"]
+        )
+        return new_video

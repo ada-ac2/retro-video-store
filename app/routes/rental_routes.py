@@ -2,7 +2,7 @@ from app import db
 from app.models.customer import Customer
 from app.models.video import Video
 from app.models.rental import Rental
-from .validate_routes import validate_model, validate_customer_user_input, validate_rental_out, validate_record, check_inventory
+from .validate_routes import validate_model, validate_customer_user_input, validate_rental_out, validate_record, check_inventory, validate_rental_in, check_outstanding_videos
 from flask import Blueprint, jsonify, abort, make_response, request
 from datetime import datetime, timedelta
 
@@ -46,9 +46,20 @@ def create_rental_check_out():
 
 # #POST /rentals/check-in
 @rental_bp.route("/check-in", methods = ["POST"])
-def create_rental_check_in(customer_id, video_id):
+# def create_rental_check_in(customer_id, video_id):
+def create_rental_check_in():
+    request_body = request.get_json()
+    check_rental_in = validate_rental_in(request_body)
+    if check_rental_in:
+        abort(make_response(jsonify(check_rental_in), 400))
+    
+    customer_id = request_body["customer_id"]
+    video_id = request_body["video_id"]
     customer = validate_model(Customer, customer_id)
     video = validate_model(Video, video_id)
+    check_outstanding = check_outstanding_videos(video, customer)
+    if check_outstanding:
+        abort(make_response(jsonify(check_outstanding), 400))
 
     return_rental = Rental(
                         customer_id = customer.id,
@@ -64,7 +75,7 @@ def create_rental_check_in(customer_id, video_id):
     db.session.refresh(video)
     db.session.refresh(customer)
     
-    rental_response = return_rental.to_dict
+    rental_response = return_rental.to_dict()
     rental_response["videos_checked_out_count"] = customer.videos_checked_out_count
     rental_response["available_inventory"] = video.available_inventory
 

@@ -1,5 +1,6 @@
 from flask import abort, make_response
 from app.models.video import Video
+import datetime
 
 # Validating the id of the customer: id needs to be int and exists the planet with the id.
 # Returning the valid class instance if valid id
@@ -67,6 +68,15 @@ def validate_rental_out(rental_out):
 # Return 404: Not Found if eather not exist
 # Return 400: Bad Request if the video and customer do not match 
 # a current rental
+def validate_rental_in(rental_in):
+    invalid_dict = dict()
+    if "customer_id" not in rental_in or not isinstance(rental_in["customer_id"], int) or \
+        rental_in["customer_id"] is None:
+        invalid_dict["detail"] = "Request body must include customer_id."
+    if "video_id" not in rental_in or not isinstance(rental_in["video_id"], int) or \
+        rental_in["video_id"] is None:
+        invalid_dict["detail"] = "Request body must include video_id."
+    return invalid_dict
 
 # Add check available_inventory function
 # require video_id parameter
@@ -75,4 +85,19 @@ def check_inventory(video):
     invalid_dict = dict()
     if video.available_inventory < 1:
         invalid_dict["message"] = "Could not perform checkout"
+    return invalid_dict
+
+def check_due_date(rental):
+    invalid_dict = dict()
+    if rental.due_date < datetime.now():
+        invalid_dict["message"] = "Passed due date"
+    return invalid_dict
+
+def check_outstanding_videos(video, customer):
+    invalid_dict = {"message" : f"No outstanding rentals for customer {customer.id} and video {video.id}"}
+    available_videos = Video.query.all()
+    for available_video in available_videos:
+        if available_video.id == video.id and video.available_inventory < video.total_inventory:
+            invalid_dict = {}
+            break
     return invalid_dict
