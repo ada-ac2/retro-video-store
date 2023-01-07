@@ -7,6 +7,8 @@ class Customer(db.Model):
     postal_code = db.Column(db.String, nullable=False)
     phone = db.Column(db.String, nullable=False)
     registered_at = db.Column(db.DateTime, default=datetime.now())
+    rentals = db.relationship("Rental", back_populates="customer")
+    videos_checked_out_count = db.Column(db.Integer)
 
     def to_dict(self):
         """
@@ -19,20 +21,26 @@ class Customer(db.Model):
             "phone": self.phone,
             "registered_at": self.registered_at,
         }
+    
+    def check_out_videos(self, n):
+        self.n_rented_videos += n
         
-    def update_attr(self, attr, val):
-        """
-        Updates an attr given a *modifiable attr and value. 
-        * modifiable attrs: name, postal_code, phone
-        """
-        if attr == "name" and val.isalpha():
-            self.name = val
-        elif attr == "postal_code" and not val.isalpha():
-            self.postal_code = val
-        elif attr == "phone" and not val.isalpha():
-            self.phone = val
+    def check_in_videos(self, n):
+        self.n_rented_videos -= n
+
+    # def update_attr(self, attr, val):
+    #     """
+    #     Updates an attr given a *modifiable attr and value. 
+    #     * modifiable attrs: name, postal_code, phone
+    #     """
+    #     if attr == "name" and val.isalpha():
+    #         self.name = val
+    #     elif attr == "postal_code" and not val.isalpha():
+    #         self.postal_code = val
+    #     elif attr == "phone" and not val.isalpha():
+    #         self.phone = val
         
-        return False
+    #     return False
     
     def create_from_dict(dict):
         """

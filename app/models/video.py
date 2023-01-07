@@ -5,7 +5,7 @@ class Video(db.Model):
     title = db.Column(db.String())
     release_date = db.Column(db.Date())
     total_inventory = db.Column(db.Integer())
-    #customer = db.relationship("Customer", back_populates="videos")
+    rentals = db.relationship("Rental", back_populates="video")
 
     def to_dict(self):
         video_as_dict = {}
@@ -16,12 +16,17 @@ class Video(db.Model):
         
         return video_as_dict
 
+    def calculate_available_inventory(self):
+        """
+        Calculate number of available videos to rent
+        """
+        self.available_inventory = self.total_inventory - self.rentals.n_video_copies
+
     @classmethod
     def from_dict(cls, video_data):
         new_video = Video(
             title=video_data["title"],
             release_date=video_data["release_date"],
             total_inventory=video_data["total_inventory"],
-           
                         )
         return new_video
