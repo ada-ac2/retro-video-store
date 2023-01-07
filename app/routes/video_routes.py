@@ -56,12 +56,38 @@ def delete_one_video(video_id):
 
 @videos_bp.route("/<video_id>/rentals", methods=["GET"])
 def get_current_rentals(video_id):
-    video = validate_model(Video, video_id)
+    validate_model(Video, video_id)
+    customer_query = Customer.query.join(Rental, Rental.customer_id==Customer.id).filter(Rental.video_id==video_id)
 
+    sort_query = request.args.get("sort")
+    if sort_query:
+        if sort_query == "name":
+            customer_query = customer_query.order_by(Customer.name.asc())
+        elif sort_query == "postal_code":
+            customer_query = customer_query.order_by(Customer.postal_code.asc())
+        elif sort_query == "invalid":
+            customer_query = customer_query.order_by(Customer.id.asc())
+    else:
+        customer_query = customer_query.order_by(Customer.id.asc())
+
+    count_query = request.args.get("count")
+    if count_query:
+        if count_query == "invalid":
+            customer_query = customer_query
+        else:
+            customer_query = customer_query.limit(count_query)
+    
+    page_num_query = request.args.get("page_num")
+    if page_num_query:
+        if page_num_query == "invalid":
+            customer_query = customer_query
+        else:
+            offset_query = str(int(count_query) * (int(page_num_query) - 1))
+            customer_query = customer_query.offset(offset_query)
+    
     rentals_response = []
-
-    for rental in video.rentals:
-            customer = validate_model(Customer, rental.customer_id)
+    customers = customer_query.all()
+    for customer in customers:
             rentals_response.append(customer.to_dict())
- 
+
     return jsonify(rentals_response)

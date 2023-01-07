@@ -292,6 +292,7 @@ def test_get_rentals_no_query_params_sorts_by_id(client, one_checked_out_video, 
     # Act
     response = client.get("/customers/1/rentals")
     response_body = response.get_json()
+    print(response_body)
 
     # Assert
     assert response.status_code == 200
