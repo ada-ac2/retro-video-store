@@ -3,6 +3,7 @@ from app import db
 from app.models.video import Video 
 from app.models.customer import Customer
 from app.models.rental import Rental
+import sys
 
 customers_bp = Blueprint("customer_bp", __name__, url_prefix="/customers")
 videos_bp = Blueprint("video_bp", __name__, url_prefix="/videos")
@@ -68,7 +69,8 @@ def create_customer():
 def read_all_customers():
     #get a query object for later use
     customer_query = Customer.query
-
+    count = request.args.get("count")
+    page_num = request.args.get("page_num")
 #sorting customers
     is_sort = request.args.get("sort")
     if is_sort:
@@ -83,13 +85,28 @@ def read_all_customers():
         else: # If user don't specify any attribute, we would sort by id 
             customer_query = customer_query.order_by(Customer.id.asc())
 
+    # validating count and page_num
+    try:
+        count = int(count)
+        if page_num is None:
+            page_num = 1
+        else:
+            try:
+                page_num = int(page_num)
+            except (ValueError):
+                page_num =1
 
-    customers = customer_query.all()
+        customer_page = customer_query.paginate(page=page_num, per_page=count)
+    except (TypeError,ValueError):
+        customer_page = customer_query.paginate(page=1, per_page=sys.maxsize)
+
+    customers = customer_page.items
         
     customers_response = [] 
     
     for customer in customers: 
         customers_response.append(customer.to_dict())    #use to_dict function to make code more readable
+    
     
     return jsonify(customers_response), 200
 
