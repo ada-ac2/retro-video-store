@@ -1,4 +1,5 @@
 from app import db
+from datetime import date
 
 class Customer(db.Model):
     __tablename__ = 'customers'
