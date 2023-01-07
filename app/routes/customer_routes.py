@@ -95,3 +95,11 @@ def delete_a_customer(customer_id):
     db.session.commit()
     return make_response(
         {"id" : customer.id,"message": f"Customer #{customer_id} successfully deleted"}, 200)
+
+@customers_bp.route("/<customer_id>/rentals", methods=["GET"])
+def display_customer_rentals(customer_id):
+    customer = validate_model(Customer, customer_id)
+    rentals_response = []
+    for rental in customer.rentals:
+        rentals_response.append(rental.to_dict())
+    return make_response(jsonify(rentals_response), 200)
