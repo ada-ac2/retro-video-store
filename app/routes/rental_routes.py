@@ -52,21 +52,19 @@ def check_out():
             abort(make_response({"message": "Could not perform checkout"}, 400))
     
     # Check video's available inventory
-    if video.total_inventory < 1:
+    available_inventory = video.total_inventory - len(video.rentals)
+    if available_inventory < 1:
         abort(make_response({"message": "Could not perform checkout"}, 400))
-    
-    # Update video's available inventory
-    available_inventory = video.total_inventory - 1
-    video.total_inventory = available_inventory
 
     # Create new rental
     new_rental = Rental(
         customer_id=customer.id,
         video_id=video.id,
         )
-
     db.session.add(new_rental)
     db.session.commit()
+    available_inventory = video.total_inventory - len(video.rentals)
+
 
     # # Create entry in CustomerRental table
     # new_customer_rental = CustomerRental(
@@ -112,10 +110,6 @@ def check_in():
         abort(make_response({"message": f"No outstanding rentals for customer {customer.id} and video {video.id}"}, 400))
     
     rental_to_remove = rental_query.all()[0]
-    
-    # Update video's available inventory
-    video.total_inventory += 1
-    available_inventory = video.total_inventory
 
     # customer_rental_query = CustomerRental.query.filter_by(rental_id=rental_to_remove.id)
     
@@ -132,6 +126,9 @@ def check_in():
     
     db.session.delete(rental_to_remove)
     db.session.commit()
+
+    # Update available inventory
+    available_inventory = video.total_inventory - len(video.rentals)
 
     return make_response(jsonify({
         "customer_id": customer.id,
