@@ -86,22 +86,21 @@ def get_customers_who_rent_the_video(video_id):
     video = validate_model(Video, video_id)
 
     rentals_query = Rental.query.all()
+    customers_query = Customer.query.all()
 
     customer_list = []
     rental_list = []
-    # find all rentals of this customer
+    # find all rentals of this video
     for rental in rentals_query:
-        if rental.video_id == video_id:
+        if rental.video_id == video.id:
             rental_list.append(rental)
     
-    for rental in rental_list:
-        rental_response = {}
-        customer = validate_model(Customer, rental.customer_id).to_dict()
-        rental_response["name"] = customer.name
-        rental_response["phone"] = customer.phone
-        rental_response["postal_code"] = customer.postal_code
-        rental_response["due_date"] = rental.due_date
+    # find all customers rented the video
+    for customer in customers_query:
+        for rental in rental_list:
+            if rental.customer_id == customer.id:
+                temp_dict = customer.to_dict()
+                temp_dict["due_date"] = rental.due_date
+                customer_list.append(temp_dict)
 
-        customer_list.append(rental_response)
-
-    return customer_list
+    return jsonify(customer_list)
