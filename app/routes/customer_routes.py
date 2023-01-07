@@ -6,43 +6,25 @@ from ..models.customer import Customer
 # ~~~~~~ validation checkers ~~~~~~
 def validate_model(cls, model_id):
     """
-    Checks if customer id is correct dtype (int) and if exists in db.
+    Checks if model id is correct dtype (int) and if exists in db.
     :params:
-    - customer_id
+    - model_id
     :returns:
     - response_msg (dict), status_code (int)
     """
-    # check if customer id is integer dtype
+    # check if model id is integer dtype
     try:
         model_id = int(model_id)
     except:
         abort(make_response({"message": f"{model_id} should be an integer dtype"}, 400))
-    # fetch customer by id
+    # fetch model by id
     model = cls.query.get(model_id)
     if not model:
         return abort(make_response({"message": f"{cls.__name__} {model_id} was not found"}, 404))
     else:
         return model
 
-def validate_post_request(request, reqs):
-    """
-    Validates that http requests satisfy all requirements for POST methods
-    :params:
-    - request (from client)
-    :returns:
-    - request_body (if requirements met)
-    """
-    
-    # collect request
-    request_body = request.get_json()
-    # check if all requirements in request
-    for req in reqs:
-        if req not in request_body:
-            response = f"Request body must include {req}."
-            abort(make_response({"details" : response}, 400))
-    return request_body
-
-def validate_put_request(request, reqs):
+def validate_request(request, reqs):
     """
     Validates that http requests satisfy all requirements for PUT methods
     :params:
@@ -55,20 +37,13 @@ def validate_put_request(request, reqs):
     request_body = request.get_json()
     # check if all requirements in request
     set_request_keys = set(request_body.keys())
-    if not set_request_keys.issubset(reqs):
+    set_reqs= set(reqs)
+    if not set_request_keys == set_reqs:
+        missing_key = "".join(set_reqs-set_request_keys)
         return abort(make_response({
-                "message": f"modifiable must include {reqs}"
+                "details": f"Request body must include {missing_key}."
         }, 400))
     return request_body
-
-def validate_request_attributes(cls,request_body):
-     # unpack request body items
-    for key, val in request_body.items():
-        # update customer data
-        result = cls.update_attr(key, val)
-        if not result:
-            return abort(make_response({"message": f"{val} is invalid"}, 400))
-    return result
 
 # ~~~~~~ initialize customers blueprint ~~~~~~
 customers_bp = Blueprint("customers", __name__, url_prefix="/customers")
@@ -91,8 +66,8 @@ def display_one_customer(customer_id):
 
 @customers_bp.route("", methods=["POST"])
 def create_a_customer():
-    reqs = ["name", "postal_code", "phone"]
-    request_body = validate_post_request(request,reqs)
+    reqs = {"name", "postal_code", "phone"}
+    request_body = validate_request(request,reqs)
     # create new customer
     new_customer = Customer.create_from_dict(request_body)
     db.session.add(new_customer)
@@ -101,13 +76,16 @@ def create_a_customer():
 
 @customers_bp.route("/<customer_id>", methods=["PUT"])
 def modify_a_customer(customer_id):
-    
+    customer = validate_model(Customer, customer_id)
+
     reqs = {"name", "postal_code", "phone"}
-    request_body = validate_put_request(request,reqs)
-    result = validate_request_attributes(Customer, request_body)
-    if result:
-        customer = validate_model(Customer, customer_id)
-        db.session.commit()
+    request_body = validate_request(request,reqs)
+
+    customer.name = request_body["name"]
+    customer.postal_code = request_body["postal_code"]
+    customer.phone = request_body["phone"]
+    
+    db.session.commit()
     return make_response(customer.to_dict(), 200)
 
 @customers_bp.route("/<customer_id>", methods=["DELETE"])
