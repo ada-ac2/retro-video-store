@@ -4,6 +4,7 @@ from app.models.customer import Customer
 from app.models.rental import Rental
 from .validate_routes import validate_model, validate_record
 from flask import Blueprint, jsonify, make_response, request, abort
+from datetime import date
 
 video_bp = Blueprint("video", __name__, url_prefix="/videos")
 
@@ -60,12 +61,12 @@ def update_video(id):
     video.title = request_body["title"]
     video.release_date = request_body["release_date"]
     video.total_inventory = request_body["total_inventory"]
+    video.available_inventory = request_body["available_inventory"]
 
     db.session.commit()
     db.session.refresh(video)
 
     return video.to_dict()
-
 
 # DELETE /videos/<id>
 # The API should return back detailed errors 
@@ -75,7 +76,6 @@ def delete_video(id):
     video = validate_model(Video, id)
     db.session.delete(video)
     db.session.commit()
-    # return make_response(jsonify(f"Video #{id} successfully deleted"))
     return video.to_dict()
 
 # GET /videos/<id>/rentals
@@ -84,13 +84,24 @@ def delete_video(id):
 @video_bp.route("/<video_id>/rentals",methods=["GET"])
 def get_customers_who_rent_the_video(video_id):
     video = validate_model(Video, video_id)
-    
-    rental_response = {}
+
+    rentals_query = Rental.query.all()
+
     customer_list = []
-    for customer in video.customers:
+    rental_list = []
+    # find all rentals of this customer
+    for rental in rentals_query:
+        if rental.video_id == video_id:
+            rental_list.append(rental)
+    
+    for rental in rental_list:
+        rental_response = {}
+        customer = validate_model(Customer, rental.customer_id).to_dict()
         rental_response["name"] = customer.name
         rental_response["phone"] = customer.phone
         rental_response["postal_code"] = customer.postal_code
         rental_response["due_date"] = rental.due_date
+
         customer_list.append(rental_response)
+
     return customer_list

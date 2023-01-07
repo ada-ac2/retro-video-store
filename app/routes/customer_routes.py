@@ -82,14 +82,25 @@ def delete_customer(customer_id):
 # Return 404 if customer_id not exist (validate customer_id)
 
 @customer_bp.route("/<customer_id>/rentals",methods=["GET"])
-def get_video_rentals_for_customer(customer_id):
+def get_video_rentals_for_customer(customer_id,):
     customer = validate_model(Customer, customer_id)
-    
-    rental_response = {}
+
+    rentals_query = Rental.query.all()
+
     video_list = []
-    for video in customer.videos:
+    rental_list = []
+    # find all rentals of this customer
+    for rental in rentals_query:
+        if rental.customer_id == customer_id:
+            rental_list.append(rental)
+    
+    for rental in rental_list:
+        rental_response = {}
+        video = validate_model(Video, rental.video_id).to_dict()
+        rental_response["due_date"] = rental.due_date
         rental_response["release_date"] = video.release_date
         rental_response["title"] = video.title
-        rental_response["due_date"] = rental.due_date
+
         video_list.append(rental_response)
+
     return video_list
