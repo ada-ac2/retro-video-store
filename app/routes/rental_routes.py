@@ -27,9 +27,7 @@ def create_rental():
 
 @rentals_bp.route("", methods=["GET"])
 def read_all_rentals():
-    
-    rentals = Rental.query.all()
-
+    rental_query = Rental.query
     rentals_response = []
     for rental in rentals:
         rentals_response.append(

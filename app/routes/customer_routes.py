@@ -39,19 +39,37 @@ def create_customer():
 def get_customers():
     customer_query = Customer.query
 
+    sort_query = request.args.get("sort")
+    if sort_query:
+        if sort_query == "name":
+            customer_query = customer_query.order_by(Customer.name.asc())
+        elif sort_query == "postal_code":
+            customer_query = customer_query.order_by(Customer.postal_code.asc())
+        elif sort_query == "invalid":
+            customer_query = customer_query.order_by(Customer.id.asc())
+    else:
+        customer_query = customer_query.order_by(Customer.id.asc())
+    
+    count_query = request.args.get("count")
+    if count_query:
+        if count_query == "invalid":
+            customer_query = customer_query
+        else:
+            customer_query = customer_query.limit(count_query)
+    
+    page_num_query = request.args.get("page_num")
+    if page_num_query:
+        if page_num_query == "invalid":
+            customer_query = customer_query
+        else:
+            offset_query = str(int(count_query) * (int(page_num_query) - 1))
+            customer_query = customer_query.offset(offset_query)
+
     customers = customer_query.all()
     customer_response = []
-
     for customer in customers:
-        customer_response.append({
-            "id": customer.id,
-            "name": customer.name,
-            "registered_at": customer.registered_at,
-            "postal_code": customer.postal_code,
-            "phone": customer.phone,
-            "videos_checked_out_count": customer.videos_checked_out_count
-        })
-    
+        customer_response.append(customer.to_dict())
+
     return jsonify(customer_response)
 
 @customers_bp.route("/<customer_id>", methods=["GET"])
@@ -91,17 +109,10 @@ def delete_one_customer(customer_id):
 @customers_bp.route("/<customer_id>/rentals", methods=["GET"])
 def get_current_rentals(customer_id):
     customer = validate_model(Customer, customer_id)
-    # print(customer.rentals[0].video.title)
-    
-    # rental_query = Rental.query.filter_by(customer_id=customer.id)
-    # if not rental_query:
-    #     abort(make_response({"message": f"No outstanding rentals for customer {customer.id}"}, 400))
-    
     rentals_response = []
 
     for rental in customer.rentals:
         video = validate_model(Video, rental.video_id)
-        print(video.to_dict())
         rentals_response.append(video.to_dict())
         
     return jsonify(rentals_response)

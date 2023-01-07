@@ -20,7 +20,6 @@ def create_video():
 @videos_bp.route("", methods=["GET"])
 def get_all_videos():
     video_query = Video.query
-
     videos = video_query.all()
     video_response = []
     for video in videos:
@@ -58,11 +57,11 @@ def delete_one_video(video_id):
 @videos_bp.route("/<video_id>/rentals", methods=["GET"])
 def get_current_rentals(video_id):
     video = validate_model(Video, video_id)
-    
+
     rentals_response = []
 
     for rental in video.rentals:
-        customer = validate_model(Customer, rental.customer_id)
-        rentals_response.append(customer.to_dict())
-        
+            customer = validate_model(Customer, rental.customer_id)
+            rentals_response.append(customer.to_dict())
+ 
     return jsonify(rentals_response)
