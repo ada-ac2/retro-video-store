@@ -1,6 +1,6 @@
 from flask import abort, make_response
 from app.models.video import Video
-import datetime
+
 
 # Validating the id of the customer: id needs to be int and exists the planet with the id.
 # Returning the valid class instance if valid id
@@ -87,11 +87,6 @@ def check_inventory(video):
         invalid_dict["message"] = "Could not perform checkout"
     return invalid_dict
 
-def check_due_date(rental):
-    invalid_dict = dict()
-    if rental.due_date < datetime.now():
-        invalid_dict["message"] = "Passed due date"
-    return invalid_dict
 
 def check_outstanding_videos(video, customer):
     invalid_dict = {"message" : f"No outstanding rentals for customer {customer.id} and video {video.id}"}
