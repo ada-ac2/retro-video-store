@@ -12,7 +12,24 @@ rental_bp = Blueprint("rental_bp", __name__, url_prefix="/rentals")
 # ----------------------------------------------------------------------------------------------------------
 # -------------------------------------------- Helper Functions --------------------------------------------
 # ----------------------------------------------------------------------------------------------------------
-def sort_helper(query, atr=None, sort_method="asc"):
+def sort_helper(customer_query, is_sort): 
+    atrribute = None
+    sort_method = is_sort
+    # Handle multiple sort attributes, use case: sort=attribute_1:asc, sort=attribute_2:asc
+    sort_query_param = is_sort.split(",") if is_sort.split(",") else is_sort
+    
+    for query_param in sort_query_param:
+        split_query_param = query_param.split(":")  # Use case: ?sort=attribute:asc
+        if len(split_query_param) == 2:
+            attribute = split_query_param[0]
+            sort_method = split_query_param[1]
+        else: # Client did not specify sort method 
+            attribute = split_query_param[0] 
+
+    return sort_attribute_helper(customer_query, attribute, sort_method)
+
+
+def sort_attribute_helper(query, atr=None, sort_method="asc"):
     if atr:
         if atr == "name":
             if sort_method == "desc":
@@ -56,34 +73,24 @@ def validate_model(cls, model_id):
     model = cls.query.get(model_id)
     if model:
         return model
+
     abort(make_response(
         {"message": f"{cls.__name__} {model_id} was not found"}, 404))
 
 
+# ----------------------------------------------------------------------------------------------------------
+# -------------------------------------------- Routes ------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------
 @customers_bp.route("", methods=["GET"])
 def get_all_customers():
     customer_query = Customer.query
 
     is_sort = request.args.get("sort")
-    name_query = request.args.get("name")
     count_query = request.args.get("count")
     page_num_query = request.args.get("page_num")
 
     if is_sort:
-        atrribute = None
-        sort_method = is_sort
-        # Handle multiple sort attributes, use case: sort=attribute_1:asc, sort=attribute_2:asc
-        sort_query_param = is_sort.split(",") if is_sort.split(",") else is_sort
-        
-        for query_param in sort_query_param:
-            split_query_param = query_param.split(":")  # Use case: ?sort=attribute:asc
-            if len(split_query_param) == 2:
-                attribute = split_query_param[0]
-                sort_method = split_query_param[1]
-            else: # Client did not specify sort method 
-                attribute = split_query_param[0] 
-
-            customer_query = sort_helper(customer_query, attribute, sort_method)
+        customer_query = sort_helper(customer_query, is_sort)
     else:
         # Sort by id in ascending order by default
         customer_query = customer_query.order_by(Customer.id.asc())
@@ -308,7 +315,7 @@ def videos_customer_checked_out(id):
                 "title": video.title,
                 "due_date": Rental.query.filter_by(customer_id=customer.id, video_id=video.id).first().due_date
             })
-
+    
     return make_response(jsonify(list_videos), 200)
 
 
