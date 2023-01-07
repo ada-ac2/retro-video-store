@@ -1,46 +1,12 @@
 from app import db
 from app.models.customer import Customer
+from app.models.video import Video
+from app.models.rental import Rental
+from .validate_routes import validate_model, validate_customer_user_input
 from flask import Blueprint, jsonify, abort, make_response, request
-from datetime import datetime
+from datetime import date
 
 customer_bp = Blueprint("customer_bp", __name__, url_prefix = "/customers")
-
-## Helper functions ##
-
-# Validating the id of the customer: id needs to be int and exists the planet with the id.
-# Returning the valid class instance if valid id
-def validate_model(cls, model_id):
-    try:
-        model_id = int(model_id)
-    except:
-        abort(make_response({"message":f"{cls.__name__} {model_id} invalid"}, 400))
-        #abort(make_response(jsonify(f"{cls.__name__} {model_id} invalid"), 400))
-    class_obj = cls.query.get(model_id)
-    if not class_obj:
-        abort(make_response({"message":f"{cls.__name__} {model_id} was not found"}, 404))
-        #abort(make_response(jsonify(f"{cls.__name__} {model_id} was not found"), 404))
-    return class_obj
-
-# Validating the user input to create or update the customer
-# Returning the valid JSON if valid input
-def validate_input(customer_value):
-    invalid_dict = {}
-    if "name" not in customer_value \
-        or not isinstance(customer_value["name"], str) \
-        or customer_value["name"] == "":
-        invalid_dict["details"] = "Request body must include name."
-    if "postal_code" not in customer_value \
-        or not isinstance(customer_value["postal_code"], str) \
-        or customer_value["postal_code"] == "":
-        invalid_dict["details"] = "Request body must include postal_code."
-    if "phone" not in customer_value \
-        or not isinstance(customer_value["phone"], str) \
-        or customer_value["phone"] == "":
-        invalid_dict["details"] = "Request body must include phone."
-#        return abort(make_response(jsonify("Invalid request"), 400))  
-    return invalid_dict
-
-## Routes functions ##
 
 # Get all customers info (GET /customers)
 # Return JSON list
@@ -65,7 +31,7 @@ def get_one_customer(customer_id):
 @customer_bp.route("", methods = ["POST"])
 def register_customer():
     customer_info = request.get_json()
-    check_invalid_dict = validate_input(customer_info)
+    check_invalid_dict = validate_customer_user_input(customer_info)
 
     if check_invalid_dict:
         abort(make_response(jsonify(check_invalid_dict), 400))
@@ -75,15 +41,13 @@ def register_customer():
     if not new_customer.videos_checked_out_count:
         new_customer.videos_checked_out_count = 0
 
-    new_customer.registered_at = datetime.now()
+    new_customer.registered_at = date.today()
 
     db.session.add(new_customer)
     db.session.commit()
     db.session.refresh(new_customer)
     
     return new_customer.to_dict(), 201
-    # return make_response(f"Customer {new_customer.name} successfully registered", 201)
-    #return make_response(jsonify(f"Customer {new_customer.name} successfully registered"), 201)    
 
 # Update the customer info by id (PUT /customer/<id>)
 # Return sussess message "Customer {id} info successfully udated"
@@ -91,9 +55,10 @@ def register_customer():
 def update_customer(customer_id):
     customer = validate_model(Customer, customer_id)
     request_body = request.get_json()
-    check_invalid_dict = validate_input(request_body)
+    check_invalid_dict = validate_customer_user_input(request_body)
     if check_invalid_dict:
         return abort(make_response(jsonify(check_invalid_dict), 400))
+    
     customer.name = request_body["name"]
     customer.postal_code = request_body["postal_code"]
     customer.phone = request_body["phone"]
@@ -111,4 +76,31 @@ def delete_customer(customer_id):
     db.session.delete(customer)
     db.session.commit()
     return customer.to_dict()
-    #return make_response(jsonify(f"Customer {customer.id} info successfully deleted"), 200)
+
+# Get customer rentals by customer_id (GET /customers/<id>/rentals)
+# Return list the videos a customer currently has checked out - successful
+# Return 404 if customer_id not exist (validate customer_id)
+
+@customer_bp.route("/<customer_id>/rentals",methods=["GET"])
+def get_video_rentals_for_customer(customer_id,):
+    customer = validate_model(Customer, customer_id)
+
+    rentals_query = Rental.query.all()
+
+    video_list = []
+    rental_list = []
+    # find all rentals of this customer
+    for rental in rentals_query:
+        if rental.customer_id == customer_id:
+            rental_list.append(rental)
+    
+    for rental in rental_list:
+        rental_response = {}
+        video = validate_model(Video, rental.video_id).to_dict()
+        rental_response["due_date"] = rental.due_date
+        rental_response["release_date"] = video.release_date
+        rental_response["title"] = video.title
+
+        video_list.append(rental_response)
+
+    return video_list
