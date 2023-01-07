@@ -1,4 +1,5 @@
-from flask import Blueprint, jsonify, abort, make_response, request
+from flask import abort, make_response
+from app.models.video import Video
 
 # Validating the id of the customer: id needs to be int and exists the planet with the id.
 # Returning the valid class instance if valid id
@@ -50,6 +51,16 @@ def validate_record(video):
 # Return 404: Not Found if eather not exist
 # Return 400: Bad Request if the video does not have any available 
 # inventory before check out
+def validate_rental_out(rental_out):
+    invalid_dict = dict()
+    if "customer_id" not in rental_out or not isinstance(rental_out["customer_id"], int) or \
+        rental_out["customer_id"] is None:
+        invalid_dict["detail"] = "Request body must include customer_id."
+    if "video_id" not in rental_out or not isinstance(rental_out["video_id"], int) or \
+        rental_out["video_id"] is None:
+        invalid_dict["detail"] = "Request body must include video_id."
+    return invalid_dict
+
 
 # Validate post rentals/check_in 
 # Required Request Body Parameters: customer_id, video_id
@@ -60,3 +71,8 @@ def validate_record(video):
 # Add check available_inventory function
 # require video_id parameter
 # return available numbers of copy 
+def check_inventory(video):
+    invalid_dict = dict()
+    if video.available_inventory < 1:
+        invalid_dict["message"] = "Could not perform checkout"
+    return invalid_dict

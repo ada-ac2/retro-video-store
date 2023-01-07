@@ -20,6 +20,7 @@ def test_checkout_video(client, one_video, one_customer):
 
     response_body = response.get_json()
 
+
     assert response.status_code == 200
     assert response_body["video_id"] == 1
     assert response_body["customer_id"] == 1

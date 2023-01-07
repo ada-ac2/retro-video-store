@@ -55,7 +55,7 @@ def update_customer(customer_id):
     request_body = request.get_json()
     check_invalid_dict = validate_customer_user_input(request_body)
     if check_invalid_dict:
-        return abort(make_response(jsonify(check_invalid_dict), 400))
+        abort(make_response(jsonify(check_invalid_dict), 400))
     
     customer.name = request_body["name"]
     customer.postal_code = request_body["postal_code"]

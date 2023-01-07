@@ -10,7 +10,6 @@ class Video(db.Model):
     release_date = db.Column(db.Date, nullable=False)
     total_inventory = db.Column(db.Integer, default=0, nullable=False)
     available_inventory = db.Column(db.Integer, default=mydefault)
-    # long_name = Column(String, unique=True, default=mydefault)
 
     customers = db.relationship("Rental")
     
@@ -29,6 +28,6 @@ class Video(db.Model):
             title=video_data["title"],
             release_date=video_data["release_date"],
             total_inventory = video_data["total_inventory"],
-            # available_inventory = video_data["total_inventory"]
+            # available_inventory = new_video.total_inventory
         )
         return new_video
