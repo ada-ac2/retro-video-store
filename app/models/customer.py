@@ -14,13 +14,14 @@ class Customer(db.Model):
         """
         Returns dictionary of customer data.
         """
-        return {
-            "id": self.id,
-            "name": self.name,
-            "postal_code": self.postal_code,
-            "phone": self.phone,
-            "registered_at": self.registered_at,
+        customer_dict = {
+                "id": self.id,
+                "name": self.name,
+                "postal_code": self.postal_code,
+                "phone": self.phone,
+                "registered_at": self.registered_at,
         }
+        return customer_dict
     
     def check_out_videos(self, n):
         self.n_rented_videos += n
