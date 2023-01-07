@@ -63,15 +63,8 @@ def get_all_customers():
 
     is_sort = request.args.get("sort")
     name_query = request.args.get("name")
-    count = request.args.get("count")
+    count_query = request.args.get("count")
     page_num_query = request.args.get("page_num")
-
-    if name_query:
-        customer_query = customer_query.filter_by(name=name_query)
-    if page_num_query:
-        customer_query = customer_query.filter_by(page_num=page_num_query)
-    if count:
-        customer_query = customer_query.paginate(per_page=count)
 
     if is_sort:
         atrribute = None
@@ -92,9 +85,12 @@ def get_all_customers():
         # Sort by id in ascending order by default
         customer_query = customer_query.order_by(Customer.id.asc())
 
-    customers = customer_query.all()
+
+    if page_num_query and count_query: 
+        customers = customer_query.paginate(page = int(page_num_query), per_page = int(count_query) ) 
+    
     customers_response = []
-    for customer in customers:
+    for customer in customers.items:
         customers_response.append(customer.to_dict())
 
     return make_response(jsonify(customers_response), 200)
