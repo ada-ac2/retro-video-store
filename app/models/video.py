@@ -14,8 +14,15 @@ class Video(db.Model):
         video_as_dict["title"] = self.title
         video_as_dict["release_date"] = self.release_date
         video_as_dict["total_inventory"] = self.total_inventory     
-
         return video_as_dict
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "release_date": self.release_date,
+            "total_inventory": self.total_inventory
+        }
 
     def get_available_video_inventory(self):
         num_of_rentals = 0

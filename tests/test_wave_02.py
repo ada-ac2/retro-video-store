@@ -141,7 +141,7 @@ def test_checkin_video_not_checked_out(client, one_video, one_customer):
     assert response.status_code == 400
     assert response_body == {"message": "No outstanding rentals for customer 1 and video 1"}
     
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_rentals_by_video(client, one_checked_out_video):
     response = client.get("/videos/1/rentals")
 
@@ -151,7 +151,7 @@ def test_rentals_by_video(client, one_checked_out_video):
     assert len(response_body) == 1
     assert response_body[0]["name"] == CUSTOMER_NAME
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_rentals_by_video_not_found(client):
     response = client.get("/videos/1/rentals")
 
@@ -160,7 +160,7 @@ def test_rentals_by_video_not_found(client):
     assert response.status_code == 404
     assert response_body["message"] == "Video 1 was not found"
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_rentals_by_video_no_rentals(client, one_video):
     response = client.get("/videos/1/rentals")
 
@@ -169,7 +169,7 @@ def test_rentals_by_video_no_rentals(client, one_video):
     assert response.status_code == 200
     assert response_body == []
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_rentals_by_customer(client, one_checked_out_video):
     response = client.get("/customers/1/rentals")
 
@@ -179,7 +179,7 @@ def test_rentals_by_customer(client, one_checked_out_video):
     assert len(response_body) == 1
     assert response_body[0]["title"] == VIDEO_TITLE
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_rentals_by_customer_not_found(client):
     response = client.get("/customers/1/rentals")
 
@@ -188,7 +188,7 @@ def test_rentals_by_customer_not_found(client):
     assert response.status_code == 404
     assert response_body["message"] == "Customer 1 was not found"
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_rentals_by_customer_no_rentals(client, one_customer):
     response = client.get("/customers/1/rentals")
 
@@ -197,7 +197,7 @@ def test_rentals_by_customer_no_rentals(client, one_customer):
     assert response.status_code == 200
     assert response_body == []
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_can_delete_customer_with_rental(client, one_checked_out_video):
     # Act
     response = client.delete("/customers/1")
@@ -205,7 +205,7 @@ def test_can_delete_customer_with_rental(client, one_checked_out_video):
     #Assert
     assert response.status_code == 200
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_can_delete_video_with_rental(client, one_checked_out_video):
     # Act
     response = client.delete("/videos/1")
@@ -213,7 +213,7 @@ def test_can_delete_video_with_rental(client, one_checked_out_video):
     #Assert
     assert response.status_code == 200
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_cant_checkout_video_twice(client, one_checked_out_video):
     # Act
     response = client.post("/rentals/check-out", json={
@@ -224,7 +224,7 @@ def test_cant_checkout_video_twice(client, one_checked_out_video):
     # Assert 
     assert response.status_code == 400
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_cant_checkin_video_twice(client, one_checked_out_video):
     # Act
     response = client.post("/rentals/check-in", json={

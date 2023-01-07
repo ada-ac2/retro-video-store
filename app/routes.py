@@ -66,13 +66,13 @@ def read_all_customers():
     for customer in customers: 
         customers_response.append(customer.to_dict())    #use to_dict function to make code more readable
 
-    return make_response(jsonify(customers_response), 200)
+    return jsonify(customers_response), 200
 
 @customers_bp.route("/<customer_id>", methods=["GET"])
 def read_one_customer_by_id(customer_id):
     customer = validate_model(Customer, customer_id)
 
-    return (customer.to_dict(),200)
+    return customer.to_dict(), 200
 
 @customers_bp.route("/<customer_id>", methods=["PUT"])
 def update_customer_by_id(customer_id):
@@ -87,7 +87,7 @@ def update_customer_by_id(customer_id):
         abort(make_response({"details":f"Request body must include {keyerror.args[0]}."}, 400))
     
     db.session.commit() 
-    return (new_customer.to_dict(),200)
+    return new_customer.to_dict(), 200
 
 
 @customers_bp.route("/<customer_id>", methods=["DELETE"])
@@ -97,7 +97,7 @@ def delete_customer_by_id(customer_id):
     db.session.delete(customer)
     db.session.commit()
 
-    return {"id": customer.id}
+    return {"id": customer.id}, 200
 
 ######################
 ######################
@@ -117,7 +117,7 @@ def create_one_video():
     db.session.add(new_video)
     db.session.commit()
     
-    return make_response(new_video.to_dict(), 201)
+    return new_video.to_dict(), 201
 
 @videos_bp.route("", methods=["GET"])
 def read_all_videos():
@@ -130,13 +130,13 @@ def read_all_videos():
     for video in videos: 
         video_response.append(video.to_dict())    #use to_dict function to make code more readable
 
-    return jsonify(video_response)
+    return jsonify(video_response), 200
 
 @videos_bp.route("/<video_id>", methods=["GET"])
 def read_one_video_by_id(video_id):
     video = validate_model(Video, video_id)
 
-    return (video.to_dict(),200)
+    return video.to_dict(), 200
 
 @videos_bp.route("/<video_id>", methods=["PUT"])
 def update_video_by_id(video_id):
@@ -160,7 +160,7 @@ def delete_video_by_id(video_id):
     db.session.delete(video)
     db.session.commit()
 
-    return {"id": video.id}
+    return {"id": video.id}, 200
 
 #--------------------------- Rentals Route Functions -----------------------------------------
 @rentals_bp.route("/check-out", methods=["POST"])
@@ -193,6 +193,9 @@ def checkin_videos():
 
     video = Video.get_id(request_body["video_id"])
     customer = Customer.get_id(request_body["customer_id"])
+    
+    
+
     if not video or not customer:
         return {"message": "video_id or customer_id not found"}, 404
 
@@ -200,5 +203,33 @@ def checkin_videos():
         video_id = video.id,
         customer_id = customer.id
     )
-
     return res
+
+@customers_bp.route("<customer_id>/rentals", methods=["GET"])
+def read_customer_rentals(customer_id):
+    customer_rentals_response = []
+    customer = Customer.get_id(customer_id)
+    #customer_rentals = Rental.query.filter(Rental.customer_id == customer_id).all()
+    if not customer:
+        return {"message": f"Customer {customer_id} was not found"}, 404
+    
+    rentals = customer.rentals
+
+    res = [rental.to_json() for rental in rentals]
+
+    return jsonify(res), 200
+
+@videos_bp.route("<video_id>/rentals", methods=["GET"])
+def read_video_rentals(video_id):
+    video_rentals_response = []
+    video = Video.get_id(video_id)
+    video_rentals = Rental.query.filter(Rental.video_id == video_id).all()
+
+    if not video:
+        return {"message": f"Video {video_id} was not found"}, 404
+
+    for rental in video_rentals:
+        id = rental.customer_id
+        video_rentals_response.append(rental.get_rental_by_video_id(id))
+
+    return jsonify(video_rentals_response), 200

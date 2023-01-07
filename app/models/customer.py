@@ -21,6 +21,18 @@ class Customer(db.Model):
 
         return customer_as_dict
 
+    def to_json(self):
+        return {
+        "id": self.id,
+        "name": self.name,
+        "phone": self.phone,
+        "postal_code": self.postal_code,
+        "videos_checked_out_count": self.videos_checked_out_count,
+        "registered_at": self.registered_at
+        }
+
+
+
     @classmethod
     def from_dict(cls, customer_data):
         new_customer = Customer(name = customer_data["name"],
@@ -33,7 +45,6 @@ class Customer(db.Model):
     def get_id(cls, id):
         return Customer.query.get(id)
 
-    
     def get_videos_checked_out_count(self):
         num_of_rentals = 0
         for rental in self.rentals:

@@ -3,11 +3,14 @@ from app.models.video import Video
 from app.models.customer import Customer
 from sqlalchemy import func
 from datetime import timedelta
+from .video import Video
+from .customer import Customer
 
 
 class Rental(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String)
+    #have the datetimes calcuated by the db server. func.now() tells db to calc the timestamp
     due_date = db.Column(db.DateTime, default=func.now() + timedelta(days=7))
     videos_checked_out_count = db.Column(db.Integer)
     available_inventory = db.Column(db.Integer)
@@ -37,6 +40,32 @@ class Rental(db.Model):
         #return new_rental
 
 
+
+    def to_json(self):
+        video = Video.get_id(self.video_id)
+        return {
+            "title": video.title,
+            "due_date": self.due_date,
+            "release_date": video.release_date
+        }
+
+    def get_rental_by_video_id(self, id):
+        customer = Customer.query.get(id)
+        return {
+            "name": customer.name,
+            "due_date": self.due_date,
+            "phone": customer.phone,
+            "postal_code": customer.postal_code
+        }
+
+    def get_rental_by_customer_id(self, id):
+        video = Video.query.get(id)
+        return {
+            "release_date": video.release_date,
+            "title": video.title,
+            "due_date": self.due_date
+        }
+
     @classmethod
     def check_out(cls, video_id, customer_id):
         new_rental = cls(video_id=video_id, customer_id=customer_id)
@@ -63,12 +92,13 @@ class Rental(db.Model):
 
     @classmethod
     def check_in(cls, video_id, customer_id):
+        
         rental_check_in = cls.query.filter(
             Rental.customer_id==customer_id,
             Rental.video_id==video_id,
             Rental.is_checked_out==True
             ).first()
-
+        #delete_video_and_customer = Rental.query.filter(Rental.video_id == video.id,Rental.customer_id == customer.id).first()
         video = Video.get_id(video_id)
         customer = Customer.get_id(customer_id)
 
@@ -76,9 +106,13 @@ class Rental(db.Model):
             return {
                 "message": f"No outstanding rentals for customer {customer.id} and video {video.id}"
             }, 400
-        rental_check_in.is_checked_out = None
-
+            
+        rental_check_in.is_checked_out = False
+        
+        
         db.session.delete(rental_check_in)
+        db.session.commit()
+        db.session.add([video, customer, rental_check_in])
         db.session.commit()
 
         videos_checked_out_count = customer.get_videos_checked_out_count()
