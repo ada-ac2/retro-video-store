@@ -12,8 +12,6 @@ rental_bp = Blueprint("rental_bp", __name__, url_prefix="/rentals")
 # ----------------------------------------------------------------------------------------------------------
 # -------------------------------------------- Helper Functions --------------------------------------------
 # ----------------------------------------------------------------------------------------------------------
-
-
 def sort_helper(query, atr=None, sort_method="asc"):
     if atr:
         if atr == "name":
@@ -44,6 +42,11 @@ def sort_helper(query, atr=None, sort_method="asc"):
 
     return query
 
+def get_all_customer_helper(customer_list): 
+    customers_response = []
+    for customer in customer_list:
+        customers_response.append(customer.to_dict())
+    return customers_response
 
 def validate_model(cls, model_id):
     try:
@@ -85,21 +88,16 @@ def get_all_customers():
         # Sort by id in ascending order by default
         customer_query = customer_query.order_by(Customer.id.asc())
 
-
-    customers_response = [] 
     if page_num_query and count_query and page_num_query.isnumeric() and count_query.isnumeric(): 
         customers = customer_query.paginate(page = int(page_num_query), per_page = int(count_query)) 
-        for customer in customers.items:
-            customers_response.append(customer.to_dict())
+        customers_response = get_all_customer_helper(customers.items)
     elif count_query and count_query.isnumeric() and (not page_num_query or not page_num_query.isnumeric()):
         customers = customer_query.paginate(page = 1, per_page = int(count_query)) 
-        for customer in customers.items:
-            customers_response.append(customer.to_dict())
+        customers_response = get_all_customer_helper(customers.items)
     else:
         customers = customer_query.all() 
-        for customer in customers:
-            customers_response.append(customer.to_dict())
-        
+        customers_response = get_all_customer_helper(customers)
+    
     return make_response(jsonify(customers_response), 200)
 
 
