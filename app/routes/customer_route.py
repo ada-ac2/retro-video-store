@@ -19,7 +19,7 @@ def validate_model(cls, model_id):
     
     return model
 
-#============================== planets_bp.route =============================
+#============================== customers_bp.route =============================
 #============================================================================
 #GET /customers
 @customers_bp.route("", methods=["GET"])
