@@ -313,7 +313,8 @@ def checkin_videos():
         "videos_checked_out_count": (customers_rentals - rentals),
         "available_inventory": video.total_inventory
     }
-    #db.session.delete(check_in_video)
+    db.session.delete(Rental.query.filter_by(
+            video_id=video.id, customer_id=customer.id).first())
     db.session.commit()
     if video == check_in_video["video_id"]:
         return{"message": f"Cannot perform checkout"}, 400
