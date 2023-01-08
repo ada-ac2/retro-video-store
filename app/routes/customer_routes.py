@@ -12,13 +12,45 @@ customer_bp = Blueprint("customer_bp", __name__, url_prefix = "/customers")
 # Get all customers info (GET /customers)
 # Return JSON list
 @customer_bp.route("", methods = ["GET"])
-def get_all_customers():
-    customers = Customer.query.all()
+def get_all_customers_with_query():
+
+    customer_query = Customer.query
+    number_of_customers = Customer.query.count()
+
+    page_query = request.args.get("page_num")
+    count_query = request.args.get("count")
+    
+    sort_query = request.args.get("sort")
+    if sort_query:
+        if sort_query == "name":
+            customer_query = customer_query.order_by(Customer.name)
+        elif sort_query == "registered_at":
+            customer_query = customer_query.order_by(Customer.registered_at)
+        elif sort_query == "postal_code":
+            customer_query = customer_query.order_by(Customer.postal_code)
+
+    if count_query and count_query.isdigit():
+        if int(count_query) > 0:
+            if page_query and page_query.isdigit():
+                if int(page_query)>0:
+                    if number_of_customers - (int(page_query)-1)*int(count_query) >= 0:
+                        customer_query = customer_query.paginate(page=int(page_query), per_page=int(count_query)).items   
+                    else: 
+                        customer_query = customer_query.limit(int(count_query))
+            else:
+                customer_query = customer_query.limit(int(count_query))
+    
+    if not page_query:
+        customers = customer_query.all()
+    else:
+        customers = customer_query
+
     customers_list = []
     for customer in customers:
         customers_list.append(customer.to_dict())
 
     return jsonify(customers_list), 200
+
 
 # Get the customer info by id (GET /customers/<id>)
 # Return info in JSON format
