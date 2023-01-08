@@ -3,6 +3,7 @@ from app import db
 from app.models.video import Video 
 from app.models.customer import Customer
 from app.models.rental import Rental
+from datetime import datetime, timedelta
 
 customers_bp = Blueprint("customer_bp", __name__, url_prefix="/customers")
 videos_bp = Blueprint("video_bp", __name__, url_prefix="/videos")
@@ -21,6 +22,16 @@ def validate_model(cls, model_id):
         abort(make_response({"message":f"{cls.__name__} {model_id} was not found"}, 404))    
     return model 
 
+#Sort fuction
+# def sort_helper(sort_query, atr = None): 
+#     if sort_query == customer_query && atr == "id": 
+#         sort_query = sort_query.order_by(Customer.id.asc())
+#     elif atr != None:
+#         #Sort in ascending order by default 
+#         sort_query = sort_query.order_by(sort_query.atr.asc())
+
+#     return sort_query
+
 def validate_request_body(request_body): 
     if "name" not in request_body or "phone" not in request_body or "postal_code" not in request_body:
         abort(make_response("Invalid Request", 400))
@@ -32,11 +43,15 @@ def validate_video_request_body(request_body):
         not in request_body:
         abort(make_response("Invalid Request", 400))
 
-#validation for Rental routes
-#def validate_rental_request_body(request_body):
-    #if "customer_id" not in request_body or "video_id" not in request_body:
-        #abort(make_response("Invalid Request", 400)) 
+def validate_rental_request_body(request_body):
+    if "customer_id" not in request_body:
+        return{"message": "Invalid, Request body missing 'customer_id'"}, 400
+    if "video_id" not in request_body:
+        return {"message": "Invalid, Request body missing 'video_id'"}, 400
 
+def due_date():
+    due_date = datetime.today() + timedelta(days=7)
+    return due_date
 #--------------------------- Customer Route Functions -----------------------------------------
 
 @customers_bp.route("", methods=["POST"])
@@ -59,13 +74,28 @@ def read_all_customers():
     #get a query object for later use
     customer_query = Customer.query
 
+#sorting customers
+    is_sort = request.args.get("sort")
+    if is_sort:
+        attribute = is_sort 
+
+        if attribute == "name":
+            customer_query = customer_query.order_by(Customer.name.asc())
+        elif attribute == "registered_at":
+            customer_query = customer_query.order_by(Customer.registered_at.asc())
+        elif attribute == "postal_code":
+            customer_query = customer_query.order_by(Customer.postal_code.asc())
+        else: # If user don't specify any attribute, we would sort by id 
+            customer_query = customer_query.order_by(Customer.id.asc())
+
+
     customers = customer_query.all()
         
     customers_response = [] 
     
     for customer in customers: 
         customers_response.append(customer.to_dict())    #use to_dict function to make code more readable
-
+    
     return jsonify(customers_response), 200
 
 @customers_bp.route("/<customer_id>", methods=["GET"])
@@ -124,6 +154,17 @@ def read_all_videos():
     #get a query object for later use
     video_query = Video.query
 
+    is_sort = request.args.get("sort")
+    if is_sort:
+        attribute = is_sort 
+
+        if attribute == "title":
+            video_query = video_query.order_by(Video.title.asc())
+        elif attribute == "release_date":
+            video_query = video_query.order_by(Video.release_date.asc())
+        else: # If user don't specify any attribute, we would sort by id 
+            video_query = video_query.order_by(Video.id.asc())
+
     videos = video_query.all()
         
     video_response = [] 
@@ -165,71 +206,141 @@ def delete_video_by_id(video_id):
 #--------------------------- Rentals Route Functions -----------------------------------------
 @rentals_bp.route("/check-out", methods=["POST"])
 def checkout_video():
+    
     request_body = request.get_json()
-    if "customer_id" not in request_body or "video_id" not in request_body:
-        return {"message": "Invalid: customer_id or video_id not found in request body"}, 400
-    video = Video.get_id(request_body["video_id"])
-    customer = Customer.get_id(request_body["customer_id"])
-    if not video or not customer:
-        return {"message": "video_id or customer_id not found"}, 404
-    if not video.get_available_video_inventory():
+
+    if "customer_id" not in request_body:
+        return{"message": "Invalid, Request body missing 'customer_id'"}, 400
+    if "video_id" not in request_body:
+        return {"message": "Invalid, Request body missing 'video_id'"}, 400
+    
+    video_id = request_body["video_id"]
+    video = Video.get_id(video_id)
+    if not video:
+        return {"message": f"Video {video_id} was not found"}, 404
+
+    customer_id = request_body["customer_id"]
+    customer = Customer.get_id(customer_id)
+    if not customer:
+        return {"message": f"Customer {customer_id} was not found"}, 404
+
+    return_date = due_date()
+
+    if video.total_inventory - Rental.query.filter_by(video_id=video_id).count() <= 0:
         return {"message": "Could not perform checkout"}, 400
-    res = Rental.check_out(
-        video_id = video.id,
-        customer_id=customer.id
-        )
-    return res
+    
+    rental = Rental(
+        customer_id = request_body["customer_id"],
+        video_id=request_body["video_id"],
+        due_date= return_date
+    )
+
+    db.session.add(rental)
+    db.session.commit()
+
+    rentals = Rental.query.filter_by(video_id=video_id).count()
+    customers_rentals = customer.video
+
+    check_out_video = {
+        "video_id": rental.video_id,
+        "customer_id": rental.customer_id,
+        "due_date": return_date,
+        "videos_checked_out_count": len(customers_rentals),
+        "available_inventory": video.total_inventory - rentals
+    }
+
+    return jsonify (check_out_video), 200
+
+
 
 @rentals_bp.route("/check-in", methods=["POST"])
 def checkin_videos():
     request_body = request.get_json()
-    no_id = ""
+
     if "customer_id" not in request_body:
-        no_id = "customer_id"
-    elif "video_id" not in request_body:
-        no_id = "video_id"
-    if no_id:
-        return {"message": f"Invalid, missing {no_id}."}, 400
+        return{"message": "Invalid, Request body missing 'customer_id'"}, 400
+    if "video_id" not in request_body:
+        return {"message": "Invalid, Request body missing 'video_id'"}, 400
 
-    video = Video.get_id(request_body["video_id"])
-    customer = Customer.get_id(request_body["customer_id"])
-    
-    
-
-    if not video or not customer:
-        return {"message": "video_id or customer_id not found"}, 404
-
-    res = Rental.check_in(
-        video_id = video.id,
-        customer_id = customer.id
-    )
-    return res
-
-@customers_bp.route("<customer_id>/rentals", methods=["GET"])
-def read_customer_rentals(customer_id):
-    customer_rentals_response = []
+    customer_id = request_body["customer_id"]
     customer = Customer.get_id(customer_id)
-    #customer_rentals = Rental.query.filter(Rental.customer_id == customer_id).all()
     if not customer:
         return {"message": f"Customer {customer_id} was not found"}, 404
     
-    rentals = customer.rentals
+    video_id = request_body["video_id"]
+    video = Video.get_id(video_id)
+    if not video:
+        return {"message": f"Video {video_id} was not found"}, 404
+    
+    return_date = due_date()
 
-    res = [rental.to_json() for rental in rentals]
+    rental = Rental (
+        customer_id = customer.id,
+        video_id=video.id
+    )
 
-    return jsonify(res), 200
+    #.count() returns number of rows
+    rentals = Rental.query.filter_by(video_id=video_id).count()
+    customers_rentals = Rental.query.filter_by(id=video_id).count()
+
+    if customers_rentals == 0:
+        return{"message": f"No outstanding rentals for customer 1 and video 1"}, 400
+
+    check_in_video = {
+        "video_id": rental.video_id,
+        "customer_id": rental.customer_id,
+        "due_date": return_date,
+        "videos_checked_out_count": (customers_rentals - rentals),
+        "available_inventory": video.total_inventory
+    }
+
+    return jsonify(check_in_video), 200
+
+@customers_bp.route("<customer_id>/rentals", methods=["GET"])
+def read_customer_rentals(customer_id):
+    customer = Customer.get_id(customer_id)
+    if customer is None:
+        return {"message": "Customer 1 was not found"}, 404
+    customers_rentals = customer.video
+    customer_rentals_response = []
+    for video in customers_rentals:
+        rental = Rental.query.filter_by(
+            video_id=video.id,
+            customer_id=customer_id
+        ).first()
+        rental_due_date = rental.due_date
+
+        customer_rentals_response.append({
+            "release_date": video.release_date,
+            "title": video.title,
+            "due_date": rental_due_date
+        })
+
+        if customer_rentals_response is None:
+            return jsonify([]), 200
+        return jsonify(customer_rentals_response), 200
+
 
 @videos_bp.route("<video_id>/rentals", methods=["GET"])
 def read_video_rentals(video_id):
-    video_rentals_response = []
     video = Video.get_id(video_id)
-    video_rentals = Rental.query.filter(Rental.video_id == video_id).all()
+    if video is None:
+        return {"message": "Video 1 was not found"}, 404
+    video_rentals = video.customer
+    video_rentals_response = []
+    for video in video_rentals:
+        rental = Rental.query.filter_by(
+            customer_id=video.id,
+            video_id=video_id
+        ).first()
 
-    if not video:
-        return {"message": f"Video {video_id} was not found"}, 404
+        video_rentals_response.append({
+            "name": video.name,
+            "phone": video.phone,
+            "due_date": rental.due_date,
+            "postal_code": video.postal_code
+        })
 
-    for rental in video_rentals:
-        id = rental.customer_id
-        video_rentals_response.append(rental.get_rental_by_video_id(id))
-
-    return jsonify(video_rentals_response), 200
+        if video_rentals_response is None:
+            return jsonify([]), 200
+        return jsonify(video_rentals_response), 200
