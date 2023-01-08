@@ -6,7 +6,6 @@ class Rental(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     due_date = db.Column(db.DateTime, default=datetime.now()+timedelta(days=7), nullable=False)
     status = db.Column(db.String, default="Checked out", nullable=False)
-    #returned_count = db.Column(db.Integer, default=0, nullable=False)
 
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'))
     customers = db.relationship("Customer", back_populates="videos")
