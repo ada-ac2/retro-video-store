@@ -242,7 +242,6 @@ def checkout_video():
         return {"message": f"Customer {customer_id} was not found"}, 404
 
     return_date = due_date()
-
     if video.total_inventory - Rental.query.filter_by(video_id=video_id).count() <= 0:
         return {"message": "Could not perform checkout"}, 400
     
@@ -291,6 +290,10 @@ def checkin_videos():
     
     return_date = due_date()
 
+    if video == Rental.query.filter_by(video_id=video_id):
+        return {"message": "Could not perform checkout"}, 400
+        
+
     rental = Rental (
         customer_id = customer.id,
         video_id=video.id
@@ -302,14 +305,18 @@ def checkin_videos():
 
     if customers_rentals == 0:
         return{"message": f"No outstanding rentals for customer 1 and video 1"}, 400
-
+    
     check_in_video = {
         "video_id": rental.video_id,
         "customer_id": rental.customer_id,
-        "due_date": return_date,
+        #"due_date": return_date,
         "videos_checked_out_count": (customers_rentals - rentals),
         "available_inventory": video.total_inventory
     }
+    #db.session.delete(check_in_video)
+    db.session.commit()
+    if video == check_in_video["video_id"]:
+        return{"message": f"Cannot perform checkout"}, 400
 
     return jsonify(check_in_video), 200
 
@@ -319,23 +326,62 @@ def read_customer_rentals(customer_id):
     if customer is None:
         return {"message": "Customer 1 was not found"}, 404
     customers_rentals = customer.video
+
+    rentals_query = Rental.query.all()
+    video_query = Video.query
+
+    count = request.args.get("count")
+    page_num = request.args.get("page_num")
+
+    #sorting customers
+    is_sort = request.args.get("sort")
+
+    if is_sort:
+        if is_sort == "title":
+            video_query = video_query.order_by(Video.title)
+        elif is_sort == "release_date":
+            video_query = video_query.order_by(Video.release_date)
+        else:
+            video_query = video_query.order_by(Video.id)
+    
+    # validating count and page_num
+    try:
+        count = int(count)
+        if page_num is None:
+            page_num = 1
+        else:
+            try:
+                page_num = int(page_num)
+            except (ValueError):
+                page_num =1
+        video_query = video_query.paginate(page=page_num, per_page=count)
+    except (TypeError,ValueError):
+        video_query = video_query.paginate(page=1, per_page=sys.maxsize)
+
+    video_rentals = video_query.items
+
     customer_rentals_response = []
-    for video in customers_rentals:
+
+    for video in video_rentals:
+
         rental = Rental.query.filter_by(
             video_id=video.id,
             customer_id=customer_id
         ).first()
+        
         rental_due_date = rental.due_date
 
         customer_rentals_response.append({
             "release_date": video.release_date,
+            "id": video.id,
             "title": video.title,
-            "due_date": rental_due_date
+            "due_date": rental_due_date,
+            "total_inventory": video.total_inventory
         })
 
-        if customer_rentals_response is None:
-            return jsonify([]), 200
-        return jsonify(customer_rentals_response), 200
+    if customer_rentals_response is None:
+        return jsonify([]), 200
+    return jsonify(customer_rentals_response), 200
 
 
 @videos_bp.route("<video_id>/rentals", methods=["GET"])
@@ -358,6 +404,6 @@ def read_video_rentals(video_id):
             "postal_code": video.postal_code
         })
 
-        if video_rentals_response is None:
-            return jsonify([]), 200
-        return jsonify(video_rentals_response), 200
+    if video_rentals_response is None:
+        return jsonify([]), 200
+    return jsonify(video_rentals_response), 200

@@ -26,7 +26,7 @@ class Customer(db.Model):
                         postal_code = customer_data["postal_code"],
                         phone = customer_data["phone"])
         return new_customer
-                
+
     @classmethod
     def get_id(cls, id):
         return Customer.query.get(id)
