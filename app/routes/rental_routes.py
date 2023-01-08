@@ -2,7 +2,7 @@ from app import db
 from app.models.customer import Customer
 from app.models.video import Video
 from app.models.rental import Rental
-from .validate_routes import validate_model, validate_rental_out, check_inventory, validate_rental_in, check_outstanding_videos
+from .validate_routes import validate_model, validate_rental_out, check_inventory, validate_rental_in, check_outstanding_videos, check_overdue
 from flask import Blueprint, jsonify, abort, make_response, request
 from datetime import datetime, timedelta
 
@@ -81,3 +81,27 @@ def create_rental_check_in():
     rental_response["available_inventory"] = video.available_inventory
 
     return rental_response, 200    
+
+
+# GET /rentals/overdue
+@rental_bp.route("/overdue", methods=["GET"])
+def get_all_overdue_customers():
+    rentals_query = Rental.query.all()
+    result_list = list()
+    for rental in rentals_query:
+        if check_overdue(rental):
+            video = validate_model(Video, rental.video_id)
+            customer = validate_model(Customer, rental.customer_id)
+            temp_dict = dict()
+            temp_dict["video_id"] = video.id
+            temp_dict["title"] = video.title
+            temp_dict["customer_id"] = customer.id
+            temp_dict["name"] = customer.name
+            temp_dict["postal_code"] = customer.postal_code
+            temp_dict["checkout_date"] = rental.due_date - timedelta(days=7)
+            temp_dict["due_date"] = rental.due_date
+            result_list.append(temp_dict)
+    return jsonify(result_list)
+
+
+

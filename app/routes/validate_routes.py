@@ -1,5 +1,6 @@
 from flask import abort, make_response
 from app.models.video import Video
+from datetime import datetime
 
 
 # Validating the id of the customer: id needs to be int and exists the planet with the id.
@@ -96,3 +97,8 @@ def check_outstanding_videos(video, customer):
             invalid_dict = {}
             break
     return invalid_dict
+
+
+# check a rental record if it is overdue
+def check_overdue(rental_record):
+    return rental_record.due_date < datetime.now()
