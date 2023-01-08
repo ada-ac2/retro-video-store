@@ -39,19 +39,19 @@ def get_video_by_id(id):
 
 
 
-# DELETE /customers/<id>
+# DELETE /videos/<id>
 @videos_bp.route("/<id>", methods=["DELETE"])
-def put_customers_by_id(id):
-    customer = validate_model(Customer, id)
+def delete_customers_by_id(id):
+    video = validate_model(Video, id)
 
-    db.session.delete(customer)
+    db.session.delete(video)
     db.session.commit()
     
-    return jsonify(customer.to_dict()),200
+    return jsonify(video.to_dict()),200
 
 # PUT /customers/<id>
 @videos_bp.route("/<id>", methods=["PUT"])
-def delete_customers_by_id(id):
+def put_customers_by_id(id):
     customer = validate_model(Customer, id)
     try:
         request_body = request.get_json()
