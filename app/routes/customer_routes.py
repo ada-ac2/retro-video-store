@@ -101,5 +101,9 @@ def display_customer_rentals(customer_id):
     customer = validate_model(Customer, customer_id)
     rentals_response = []
     for rental in customer.rentals:
-        rentals_response.append(rental.to_dict())
+        rentals_response.append({
+            "release_date": rental.video.release_date,
+            "title": rental.video.title,
+            "due_date": rental.due_date
+        })
     return make_response(jsonify(rentals_response), 200)
