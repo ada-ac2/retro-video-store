@@ -269,12 +269,24 @@ def read_customer_rentals(customer_id):
     customer_rentals_response = []
     #using validate_model function to replace the get id #customer = Customer.get_id(customer_id)
     customer = validate_model(Customer,customer_id)
-    
+    is_sort = request.args.get("sort")
     #customer_rentals = Rental.query.filter(Rental.customer_id == customer_id).all()
     if not customer:
         return {"message": f"Customer {customer_id} was not found"}, 404
     
     rentals = customer.rentals
+
+    
+    # if is_sort:
+    #     attribute = is_sort 
+
+    #     if attribute == "title":
+    #         video_query = video_query.order_by(Video.title.asc())
+    #     elif attribute == "release_date":
+    #         video_query = video_query.order_by(Video.release_date.asc())
+    #     else: # If user don't specify any attribute, we would sort by id 
+    #         video_query = video_query.order_by(Video.id.asc())
+
 
     res = [rental.to_json() for rental in rentals]
 
