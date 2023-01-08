@@ -22,6 +22,16 @@ def validate_model(cls, model_id):
 #============================== planets_bp.route =============================
 #============================================================================
 #GET /customers
+@customers_bp.route("", methods=["GET"])
+def get_customers():
+    customer_query = Customer.query.all()
+    response_body = []
+
+    for customer in customer_query:
+        response_body.append(customer.to_dict())
+    return jsonify(response_body)
+
+# POST /customers
 @customers_bp.route("", methods=["POST"])
 def create_customer():
     try:
@@ -36,8 +46,8 @@ def create_customer():
     response_body = new_customer.to_dict()
     return make_response(response_body, 201)
 # GET /customers/<id>
-# POST /customers
 
 
+#GET /customers
 # PUT /customers/<id>
 # DELETE /customers/<id>
