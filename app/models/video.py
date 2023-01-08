@@ -9,6 +9,7 @@ class Video(db.Model):
 
     def to_dict(self):
         video_dict = {}
+        video_dict["id"] = self.id
         video_dict["title"] = self.title
         video_dict["release_date"] = self.release_date
         video_dict["total_inventory"] = self.total_inventory
