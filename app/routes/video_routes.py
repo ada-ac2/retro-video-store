@@ -4,7 +4,7 @@ from app.models.customer import Customer
 from app.models.rental import Rental
 from .validate_routes import validate_model, validate_record
 from flask import Blueprint, jsonify, make_response, request, abort
-from datetime import date
+from datetime import timedelta
 
 video_bp = Blueprint("video", __name__, url_prefix="/videos")
 
@@ -135,3 +135,23 @@ def get_customers_who_rent_the_video_with_query(video_id):
                 customer_list.append(temp_dict)
 
     return jsonify(customer_list)
+
+
+# GET /videos/<id>/history
+@video_bp.route("/<video_id>/history", methods=["GET"])
+def get_videos_rental_history(video_id):
+    video = validate_model(Video, video_id)
+    rentals_query = Rental.query.all()
+    history = list()
+    for rental in rentals_query:
+        if rental.video_id == video.id and rental.status == "Checked out":
+            temp_dict = dict()
+            customer = validate_model(Customer, rental.customer_id)
+            temp_dict["customer_id"] = customer.id
+            temp_dict["name"] = customer.name
+            temp_dict["postal_code"] = customer.postal_code
+            temp_dict["checkout_date"] = rental.due_date - timedelta(days=7)
+            temp_dict["due_date"] = rental.due_date
+            history.append(temp_dict)
+    return jsonify(history)
+
