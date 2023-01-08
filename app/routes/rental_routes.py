@@ -2,8 +2,6 @@ from app import db
 from app.models.video import Video
 from app.models.customer import Customer
 from app.models.rental import Rental
-# from app.models.customer_rental import CustomerRental
-# from app.models.video_rental import VideoRental
 from app.models.model_helpers import *
 from flask import Blueprint, jsonify, abort, make_response, request
 

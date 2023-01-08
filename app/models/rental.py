@@ -14,16 +14,8 @@ class Rental(db.Model):
             "id": self.id,
             "customer_id": self.customer_id,
             "video_id": self.video_id,
-            "due_date": self.due_date,
+            "due_date": self.due_date
         }
-
-        
-        # rental_dict["video"] = self.video
-
-        # customer_rentals = []
-        # for customer in self.customers:
-        #     customer_rentals.append(customer)
-        # rental_dict["customers"] = customer_rentals
 
         return rental_dict
 
