@@ -1,5 +1,5 @@
-from app import db
 import datetime
+from app import db
 
 class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -23,7 +23,6 @@ class Customer(db.Model):
     def from_dict(cls, customer_data):
         new_customer = Customer(name=customer_data["name"],
                                 phone=customer_data["phone"],
-                                postal_code = customer_data["postal_code"],
-                                registered_at = customer_data["registered_at"]
+                                postal_code = customer_data["postal_code"]
                                 )
         return new_customer
