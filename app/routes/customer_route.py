@@ -15,7 +15,7 @@ def validate_model(cls, model_id):
     model = cls.query.get(model_id)
     
     if not model:
-        abort(make_response({"message":f"{cls.__name__} {model_id}  was not found"}, 404))
+        abort(make_response({"message":f"{cls.__name__} {model_id} was not found"}, 404))
     
     return model
 
@@ -55,3 +55,11 @@ def get_customers_by_id(id):
 
 # PUT /customers/<id>
 # DELETE /customers/<id>
+@customers_bp.route("/<id>", methods=["DELETE"])
+def delete_customers_by_id(id):
+    customer = validate_model(Customer, id)
+
+    db.session.delete(customer)
+    db.session.commit()
+    
+    return jsonify(customer.to_dict()),200
