@@ -21,10 +21,14 @@ def checkout_video():
     customer = validate_model(Customer, customer_id)
 
     if video and customer:
-        new_rental = Rental(video_id=request_body["video_id"],customer_id=request_body["customer_id"])
+        if video.available_inventory<=0:
+            return make_response(jsonify({"message": f"Could not perform checkout"}), 400)
+        new_rental = Rental.from_dict(request_body)
         # update customer.videos_checked_out_count
-        new_rental.customer.video_checked_out_count += 1
+        new_rental.customer = customer
+        new_rental.customer.videos_checked_out_count += 1
         # update video.available_inventory 
+        new_rental.video = video
         new_rental.video.available_inventory -= 1
         db.session.add(new_rental)
         db.session.commit()

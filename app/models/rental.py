@@ -27,8 +27,8 @@ class Rental(db.Model):
     @classmethod
     def from_dict(cls, rental_data):
         new_rental = Rental(
-            due_date=rental_data["due_date"],
-            status=rental_data["status"]
+            customer_id=rental_data["customer_id"],
+            video_id=rental_data["video_id"]
           )
         return new_rental
 
