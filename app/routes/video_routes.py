@@ -82,21 +82,52 @@ def delete_video(id):
 # List the customers who currently have the video checked out
 # validate video_id
 @video_bp.route("/<video_id>/rentals",methods=["GET"])
-def get_customers_who_rent_the_video(video_id):
+def get_customers_who_rent_the_video_with_query(video_id):
+
     video = validate_model(Video, video_id)
-
     rentals_query = Rental.query.all()
-    customers_query = Customer.query.all()
+    customer_query = Customer.query
 
+    number_of_customers = Customer.query.count()
+
+    page_query = request.args.get("page_num")
+    count_query = request.args.get("count")
+    
+    sort_query = request.args.get("sort")
+    if sort_query:
+        if sort_query == "name":
+            customer_query = customer_query.order_by(Customer.name)
+        elif sort_query == "registered_at":
+            customer_query = customer_query.order_by(Customer.registered_at)
+        elif sort_query == "postal_code":
+            customer_query = customer_query.order_by(Customer.postal_code)
+
+    if count_query and count_query.isdigit():
+        if int(count_query) > 0:
+            if page_query and page_query.isdigit():
+                if int(page_query)>0:
+                    if number_of_customers - (int(page_query)-1)*int(count_query) >= 0:
+                        customer_query = customer_query.paginate(page=int(page_query), per_page=int(count_query)).items   
+                    else: 
+                        customer_query = customer_query.limit(int(count_query))
+            else:
+                customer_query = customer_query.limit(int(count_query))
+    
     customer_list = []
     rental_list = []
-    # find all rentals of this video
+    
+# find all rentals of this video
     for rental in rentals_query:
         if rental.video_id == video.id:
             rental_list.append(rental)
-    
-    # find all customers rented the video
-    for customer in customers_query:
+
+    if not page_query:
+        customers = customer_query.all()
+    else:
+        customers = customer_query
+
+# find all customers rented the video
+    for customer in customers:
         for rental in rental_list:
             if rental.customer_id == customer.id:
                 temp_dict = customer.to_dict()
