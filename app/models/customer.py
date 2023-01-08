@@ -7,6 +7,7 @@ class Customer(db.Model):
     registered_at = db.Column(db.DateTime,default=(datetime.date.today()))
     postal_code = db.Column(db.String)
     phone = db.Column(db.String,nullable = False)
+    rentals = db.relationship("Rental", back_populates="customer")
 
 
 
