@@ -1,5 +1,6 @@
 from app import db
 from app.models.video import Video
+from app.models.rental import Rental
 from flask import Blueprint, jsonify, abort, make_response, request 
 from app.routes.customer_route import validate_model
 videos_bp = Blueprint("videos_bp",__name__, url_prefix="/videos")
@@ -64,3 +65,15 @@ def put_videos_by_id(id):
     db.session.commit()
     
     return jsonify(video.to_dict()),200
+
+## `GET /videos/<id>/rentals`
+@videos_bp.route("/<id>/rentals", methods=["GET"])
+def get_rentals_by_video_id(id):
+    video = validate_model(Video, id)
+    # rentals = Rental.query.filter(video_id=id).all()
+    response_body = []
+    for rental in video.rentals:
+        response_body.append(rental.to_dict())
+
+    
+    return jsonify(response_body)
