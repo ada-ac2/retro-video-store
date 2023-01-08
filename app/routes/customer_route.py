@@ -79,3 +79,6 @@ def delete_customers_by_id(id):
     db.session.commit()
     
     return jsonify(customer.to_dict()),200
+
+
+# `GET /customers/<id>/rentals`
