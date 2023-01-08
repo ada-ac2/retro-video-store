@@ -66,3 +66,18 @@ def delete_video_by_id(video_id):
         "id" : video.id,
         "message": f"Video #{video_id} successfully deleted"
         }, 200)
+
+@video_bp.route("<video_id>/rentals", methods=["GET"])
+def get_rentals_by_video_id(video_id):
+    
+    video = validate_model(Video, video_id)
+    rentals_response = []
+    for rental in video.rentals:
+        rentals_response.append({
+            "due_date": rental.due_date,
+            "name": rental.customer.name,
+            "phone": rental.customer.phone,
+            "postal_code": rental.customer.postal_code
+        })
+
+    return jsonify(rentals_response)
