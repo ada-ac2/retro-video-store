@@ -18,7 +18,7 @@ class Video(db.Model):
     @classmethod
     def from_dict(cls, video_data):
         new_video = Video(title=video_data["title"],
-                                phone=video_data["phone"],
+                                release_date=video_data["release_date"],
                                 total_inventory = video_data["total_inventory"]
                                 )
         
