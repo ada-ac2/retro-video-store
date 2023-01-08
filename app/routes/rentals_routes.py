@@ -23,13 +23,15 @@ def checkout_video():
     if video and customer:
         if video.available_inventory<=0:
             return make_response(jsonify({"message": f"Could not perform checkout"}), 400)
+
         new_rental = Rental.from_dict(request_body)
-        # update customer.videos_checked_out_count
+        
         new_rental.customer = customer
         new_rental.customer.videos_checked_out_count += 1
-        # update video.available_inventory 
+        
         new_rental.video = video
         new_rental.video.available_inventory -= 1
+
         db.session.add(new_rental)
         db.session.commit()
 
@@ -49,16 +51,18 @@ def checkin_video():
     customer = validate_model(Customer, customer_id)
 
     if video and customer:
-        # QUERY for rental by video_id and customer _id
-        rental = Rental.query.filter(video_id=video_id, customer_id=customer_id)
-        # if found check it in ->
-        # change status to checked_in
+        rental = Rental.query.filter_by(video_id=video_id, customer_id=customer_id).first()
+        if not rental:
+            return make_response(jsonify({"message": f"No outstanding rentals for customer {customer_id} and video {video_id}"}), 400)
+    
+        if rental.status == "checked_in":
+            return make_response(jsonify({"message": f"Cannot check_in video already checked_in"}), 400)
+
         rental.status = "checked_in"
-        # update customer.videos_checked_out_count
         rental.customer.videos_checked_out_count -= 1
-        # update video.available_inventory 
         rental.video.available_inventory += 1
-        rental.video.update
+        
+        db.session.commit()
         return make_response(jsonify(rental.to_dict()), 200)
     else:
         # if not found error out 
