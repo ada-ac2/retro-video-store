@@ -85,6 +85,7 @@ def register_customer():
 def update_customer(customer_id):
     customer = validate_model(Customer, customer_id)
     request_body = request.get_json()
+    
     check_invalid_dict = validate_customer_user_input(request_body)
     if check_invalid_dict:
         abort(make_response(jsonify(check_invalid_dict), 400))
@@ -113,7 +114,6 @@ def delete_customer(customer_id):
 
 @customer_bp.route("/<customer_id>/rentals",methods=["GET"])
 def get_video_rentals_for_customer_with_query(customer_id):
-
     customer = validate_model(Customer, customer_id)
     
     rentals_query = Rental.query.all()
@@ -176,6 +176,7 @@ def get_customers_rental_history(customer_id):
     customer = validate_model(Customer, customer_id)
     rentals_query = Rental.query.all()
     history = list()
+    
     for rental in rentals_query:
         if rental.customer_id == customer.id and rental.status == "Checked out" and customer.videos_checked_in_count > 0:
             temp_dict = dict()
@@ -184,4 +185,5 @@ def get_customers_rental_history(customer_id):
             temp_dict["due_date"] = rental.due_date
             temp_dict["checkout_date"] = rental.due_date - timedelta(days=7)
             history.append(temp_dict)
+    
     return jsonify(history)

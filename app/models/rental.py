@@ -19,12 +19,13 @@ class Rental(db.Model):
         rental_as_dict["customer_id"] = self.customer_id
         rental_as_dict["video_id"] = self.video_id
         rental_as_dict["due_date"] = self.due_date 
+        
         return rental_as_dict
 
 
     @classmethod
     def from_dict(cls, rental_data):
         new_video = Rental(
-            due_date=rental_data["due_date"]
-        )
+            due_date=rental_data["due_date"])
+        
         return new_video

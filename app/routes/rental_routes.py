@@ -15,6 +15,7 @@ rental_bp = Blueprint("rental_bp", __name__, url_prefix="/rentals")
 def create_rental_check_out():
     request_body = request.get_json()
     check_rental_out = validate_rental_out(request_body)
+        
     if check_rental_out:
         abort(make_response(jsonify(check_rental_out), 400))
 
@@ -23,6 +24,7 @@ def create_rental_check_out():
     customer = validate_model(Customer, customer_id)
     video = validate_model(Video, video_id)
     verify_inventory = check_inventory(video)
+    
     if verify_inventory:
         abort(make_response(jsonify(verify_inventory), 400))
 
@@ -51,6 +53,7 @@ def create_rental_check_out():
 @rental_bp.route("/check-in", methods = ["POST"])
 def create_rental_check_in():
     request_body = request.get_json()
+    
     check_rental_in = validate_rental_in(request_body)
     if check_rental_in:
         abort(make_response(jsonify(check_rental_in), 400))
@@ -59,6 +62,7 @@ def create_rental_check_in():
     video_id = request_body["video_id"]
     customer = validate_model(Customer, customer_id)
     video = validate_model(Video, video_id)
+    
     check_outstanding = check_outstanding_videos(video, customer)
     if check_outstanding:
         abort(make_response(jsonify(check_outstanding), 400))
@@ -88,6 +92,7 @@ def create_rental_check_in():
 def get_all_overdue_customers():
     rentals_query = Rental.query.all()
     result_list = list()
+    
     for rental in rentals_query:
         if check_overdue(rental):
             video = validate_model(Video, rental.video_id)
@@ -101,6 +106,7 @@ def get_all_overdue_customers():
             temp_dict["checkout_date"] = rental.due_date - timedelta(days=7)
             temp_dict["due_date"] = rental.due_date
             result_list.append(temp_dict)
+    
     return jsonify(result_list)
 
 

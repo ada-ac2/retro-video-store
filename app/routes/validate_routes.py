@@ -21,14 +21,17 @@ def validate_model(cls, model_id):
 # Returning the valid JSON if valid input
 def validate_customer_user_input(customer_value):
     invalid_dict = {}
+    
     if "name" not in customer_value \
         or not isinstance(customer_value["name"], str) \
         or customer_value["name"] == "":
         invalid_dict["details"] = "Request body must include name."
+    
     if "postal_code" not in customer_value \
         or not isinstance(customer_value["postal_code"], str) \
         or customer_value["postal_code"] == "":
         invalid_dict["details"] = "Request body must include postal_code."
+    
     if "phone" not in customer_value \
         or not isinstance(customer_value["phone"], str) \
         or customer_value["phone"] == "":
@@ -38,14 +41,18 @@ def validate_customer_user_input(customer_value):
 
 def validate_record(video):
     invalid_dict = dict()
+    
     if "title" not in video or not isinstance(video["title"], str) or video["title"] is None:
         invalid_dict["details"] = "Request body must include title."
+    
     if "release_date" not in video or not isinstance(video["release_date"], str) \
         or video["release_date"] is None:
         invalid_dict["details"] = "Request body must include release_date."
+    
     if "total_inventory" not in video or not isinstance(video["total_inventory"], int) \
         or video["total_inventory"] < 0:
         invalid_dict["details"] = "Request body must include total_inventory."
+    
     return invalid_dict
 
 # Validate post rentals/check_out 
@@ -55,12 +62,15 @@ def validate_record(video):
 # inventory before check out
 def validate_rental_out(rental_out):
     invalid_dict = dict()
+    
     if "customer_id" not in rental_out or not isinstance(rental_out["customer_id"], int) or \
         rental_out["customer_id"] is None:
         invalid_dict["detail"] = "Request body must include customer_id."
+    
     if "video_id" not in rental_out or not isinstance(rental_out["video_id"], int) or \
         rental_out["video_id"] is None:
         invalid_dict["detail"] = "Request body must include video_id."
+    
     return invalid_dict
 
 
@@ -71,12 +81,15 @@ def validate_rental_out(rental_out):
 # a current rental
 def validate_rental_in(rental_in):
     invalid_dict = dict()
+    
     if "customer_id" not in rental_in or not isinstance(rental_in["customer_id"], int) or \
         rental_in["customer_id"] is None:
         invalid_dict["detail"] = "Request body must include customer_id."
+    
     if "video_id" not in rental_in or not isinstance(rental_in["video_id"], int) or \
         rental_in["video_id"] is None:
         invalid_dict["detail"] = "Request body must include video_id."
+    
     return invalid_dict
 
 # Add check available_inventory function
@@ -84,6 +97,7 @@ def validate_rental_in(rental_in):
 # return available numbers of copy 
 def check_inventory(video):
     invalid_dict = dict()
+    
     if video.available_inventory < 1:
         invalid_dict["message"] = "Could not perform checkout"
     return invalid_dict
@@ -92,10 +106,12 @@ def check_inventory(video):
 def check_outstanding_videos(video, customer):
     invalid_dict = {"message" : f"No outstanding rentals for customer {customer.id} and video {video.id}"}
     available_videos = Video.query.all()
+    
     for available_video in available_videos:
         if available_video.id == video.id and video.available_inventory < video.total_inventory:
             invalid_dict = {}
             break
+    
     return invalid_dict
 
 

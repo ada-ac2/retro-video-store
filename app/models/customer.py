@@ -1,5 +1,4 @@
 from app import db
-from datetime import date
 
 class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement = True)

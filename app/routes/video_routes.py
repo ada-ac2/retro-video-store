@@ -44,6 +44,7 @@ def create_video():
     db.session.add(new_video)
     db.session.commit()
     db.session.refresh(new_video)
+    
     return new_video.to_dict(), 201
 
 # PUT /videos/<id>
@@ -56,6 +57,7 @@ def create_video():
 def update_video(id):
     video = validate_model(Video, id)
     request_body = request.get_json()
+    
     check_invalid_record = validate_record(request_body)
     if check_invalid_record:
         return abort(make_response(jsonify(check_invalid_record), 400))
@@ -76,6 +78,7 @@ def delete_video(id):
     video = validate_model(Video, id)
     db.session.delete(video)
     db.session.commit()
+    
     return video.to_dict()
 
 # GET /videos/<id>/rentals
@@ -116,7 +119,7 @@ def get_customers_who_rent_the_video_with_query(video_id):
     customer_list = []
     rental_list = []
     
-# find all rentals of this video
+    # find all rentals of this video
     for rental in rentals_query:
         if rental.video_id == video.id:
             rental_list.append(rental)
@@ -126,7 +129,7 @@ def get_customers_who_rent_the_video_with_query(video_id):
     else:
         customers = customer_query
 
-# find all customers rented the video
+    # find all customers rented the video
     for customer in customers:
         for rental in rental_list:
             if rental.customer_id == customer.id:
@@ -143,6 +146,7 @@ def get_videos_rental_history(video_id):
     video = validate_model(Video, video_id)
     rentals_query = Rental.query.all()
     history = list()
+    
     for rental in rentals_query:
         if rental.video_id == video.id and rental.status == "Checked out":
             temp_dict = dict()
@@ -153,5 +157,6 @@ def get_videos_rental_history(video_id):
             temp_dict["checkout_date"] = rental.due_date - timedelta(days=7)
             temp_dict["due_date"] = rental.due_date
             history.append(temp_dict)
+    
     return jsonify(history)
 
