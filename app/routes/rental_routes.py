@@ -44,11 +44,15 @@ def check_out():
     video = validate_model(Video, request_body["video_id"])
 
     # Check if rental for customer and video already exists
-    # rental_query = Rental.query.all()
-    # if rental_query:
-    #     rental_query = Rental.query.filter_by(customer_id=customer.id).filter_by(video_id=video.id)
-    #     if rental_query:
-    #         abort(make_response({"message": "Could not perform checkout"}, 400))
+    rental_query = Rental.query.all()
+    existing_rentals = []
+    if rental_query:
+        rental_query = Rental.query.filter_by(customer_id=customer.id).filter_by(video_id=video.id)
+        for rental in rental_query:
+            existing_rentals.append(rental)
+
+    if existing_rentals:
+        abort(make_response({"message": "Could not perform checkout"}, 400))
     
     # Check video's available inventory
     available_inventory = video.total_inventory - len(video.rentals)
@@ -64,21 +68,6 @@ def check_out():
     db.session.commit()
     available_inventory = video.total_inventory - len(video.rentals)
 
-
-    # # Create entry in CustomerRental table
-    # new_customer_rental = CustomerRental(
-    #     customer_id=customer.id,
-    #     rental_id=new_rental.id
-    # )
-    # db.session.add(new_customer_rental)
-
-    # # Create entry in VideoRental table
-    # new_video_rental = VideoRental(
-    #     video_id=video.id,
-    #     rental_id=new_rental.id
-    # )
-
-    # db.session.add(new_video_rental)
     # Update customer information
     customer.videos_checked_out_count += 1
     db.session.commit()
@@ -99,25 +88,18 @@ def check_in():
     video = validate_model(Video, request_body["video_id"])
     
     rental_query = Rental.query.all()
-    if not rental_query:
+    existing_rentals = []
+
+    if rental_query:
+        rental_query = Rental.query.filter_by(customer_id=customer.id).filter_by(video_id=video.id)
+        for rental in rental_query:
+            existing_rentals.append(rental)
+
+    if not existing_rentals:
         abort(make_response({"message": f"No outstanding rentals for customer {customer.id} and video {video.id}"}, 400))
 
-    rental_query = Rental.query.filter_by(customer_id=customer.id).filter_by(video_id=video.id)
-    if not rental_query:
-        abort(make_response({"message": f"No outstanding rentals for customer {customer.id} and video {video.id}"}, 400))
-    
-    rental_to_remove = rental_query.all()[0]
+    rental_to_remove = existing_rentals[0]
 
-    # customer_rental_query = CustomerRental.query.filter_by(rental_id=rental_to_remove.id)
-    
-    # db.session.delete(customer_rental_query[0])
-
-    # video_rental_query = VideoRental.query.filter_by(rental_id=rental_to_remove.id)
-    
-    # db.session.delete(video_rental_query[0])
-    
-    # Update customer information
-    
     customer.videos_checked_out_count -= 1
     
     db.session.delete(rental_to_remove)
