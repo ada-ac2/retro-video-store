@@ -1,8 +1,8 @@
-"""Add Customer Video Rental models
+"""empty message
 
-Revision ID: 938747179aa2
+Revision ID: 7ae5e4bab0e8
 Revises: 
-Create Date: 2023-01-06 19:46:42.397054
+Create Date: 2023-01-08 14:29:47.090205
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '938747179aa2'
+revision = '7ae5e4bab0e8'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -25,6 +25,7 @@ def upgrade():
     sa.Column('postal_code', sa.String(), nullable=False),
     sa.Column('phone', sa.String(), nullable=False),
     sa.Column('videos_checked_out_count', sa.Integer(), nullable=True),
+    sa.Column('videos_checked_in_count', sa.Integer(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('video',
@@ -38,6 +39,7 @@ def upgrade():
     op.create_table('rental',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('due_date', sa.DateTime(), nullable=False),
+    sa.Column('status', sa.String(), nullable=False),
     sa.Column('customer_id', sa.Integer(), nullable=True),
     sa.Column('video_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['customer_id'], ['customer.id'], ),
