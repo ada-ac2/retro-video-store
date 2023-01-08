@@ -51,7 +51,6 @@ def get_all_customers_with_query():
 
     return jsonify(customers_list), 200
 
-
 # Get the customer info by id (GET /customers/<id>)
 # Return info in JSON format
 @customer_bp.route("/<customer_id>",methods=["GET"] )
@@ -113,26 +112,60 @@ def delete_customer(customer_id):
 # Return 404 if customer_id not exist (validate customer_id)
 
 @customer_bp.route("/<customer_id>/rentals",methods=["GET"])
-def get_video_rentals_for_customer(customer_id,):
+def get_video_rentals_for_customer_with_query(customer_id):
+
     customer = validate_model(Customer, customer_id)
-
+    
     rentals_query = Rental.query.all()
-    videos_query = Video.query.all()
+    video_query = Video.query
 
+    number_of_videos = Video.query.count()
+
+    page_query = request.args.get("page_num")
+    count_query = request.args.get("count")
+    
+    sort_query = request.args.get("sort")
+    if sort_query:
+        if sort_query == "title":
+            video_query = video_query.order_by(Video.title)
+        elif sort_query == "release_date":
+            video_query = video_query.order_by(Video.release_date)
+    else:
+        video_query = video_query.order_by(Video.id)
+
+    if count_query and count_query.isdigit():
+        if int(count_query) > 0:
+            if page_query and page_query.isdigit():
+                if int(page_query)>0:
+                    if number_of_videos - (int(page_query)-1)*int(count_query) >= 0:
+                        video_query = video_query.paginate(page=int(page_query), per_page=int(count_query)).items   
+                    else: 
+                        video_query = video_query.limit(int(count_query))
+            else:
+                video_query = video_query.limit(int(count_query))
+    
     video_list = []
     rental_list = []
-    # find all rentals of this customer
+    
+    if not page_query:
+        videos = video_query.all()
+    else:
+        videos = video_query
+
+# find all rentals of this customer
     for rental in rentals_query:
         if rental.customer_id == customer.id:
             rental_list.append(rental)
     
-    for video in videos_query:
+    for video in videos:
         for rental in rental_list:
             if rental.video_id == video.id:
                 temp_dict = dict()
                 temp_dict["due_date"] = rental.due_date
                 temp_dict["title"] = video.title
                 temp_dict["release_date"] = video.release_date
+                temp_dict["id"] = video.id
+                temp_dict["total_inventory"] = video.total_inventory
                 video_list.append(temp_dict)
 
-    return jsonify(video_list)
+    return jsonify(video_list), 200
