@@ -325,9 +325,7 @@ def read_customer_rentals(customer_id):
     customer = Customer.get_id(customer_id)
     if customer is None:
         return {"message": "Customer 1 was not found"}, 404
-    customers_rentals = customer.video
 
-    rentals_query = Rental.query.all()
     video_query = Video.query
 
     count = request.args.get("count")
@@ -389,19 +387,55 @@ def read_video_rentals(video_id):
     video = Video.get_id(video_id)
     if video is None:
         return {"message": "Video 1 was not found"}, 404
-    video_rentals = video.customer
+
+    customer_query = Customer.query
+
+    count = request.args.get("count")
+    page_num = request.args.get("page_num")
+
+    #sorting customers
+    is_sort = request.args.get("sort")
+
+    if is_sort:
+        if is_sort == "name":
+            customer_query = customer_query.order_by(Customer.name)
+        elif is_sort == "registered_at":
+            customer_query = customer_query.order_by(Customer.registered_at)
+        elif is_sort == "postal_code":
+            customer_query = customer_query.order_by(Customer.postal_code)
+        else:
+            customer_query = customer_query.order_by(Customer.id)
+    
+    # validating count and page_num
+    try:
+        count = int(count)
+        if page_num is None:
+            page_num = 1
+        else:
+            try:
+                page_num = int(page_num)
+            except (ValueError):
+                page_num =1
+        customer_query = customer_query.paginate(page=page_num, per_page=count)
+    except (TypeError,ValueError):
+        customer_query = customer_query.paginate(page=1, per_page=sys.maxsize)
+
+    customer_rentals = customer_query.items
+
     video_rentals_response = []
-    for video in video_rentals:
+
+    for customer in customer_rentals:
         rental = Rental.query.filter_by(
             customer_id=video.id,
             video_id=video_id
         ).first()
 
         video_rentals_response.append({
-            "name": video.name,
-            "phone": video.phone,
+            "id": customer.id,
+            "name": customer.name,
+            "phone": customer.phone,
             "due_date": rental.due_date,
-            "postal_code": video.postal_code
+            "postal_code": customer.postal_code
         })
 
     if video_rentals_response is None:
