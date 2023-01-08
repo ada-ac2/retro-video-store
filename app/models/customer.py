@@ -15,7 +15,7 @@ class Customer(db.Model):
         Returns dictionary of customer data.
         """
         customer_dict = {
-                "customer_id": self.id,
+                "id": self.id,
                 "name": self.name,
                 "postal_code": self.postal_code,
                 "phone": self.phone,

@@ -21,9 +21,13 @@ class Rental(db.Model):
                 "n_video_copies": self.n_video_copies,
         }
         if self.customer:
-            rental_dict.update(self.customer.to_dict())
+            customer_dict = self.customer.to_dict()
+            customer_dict["customer_id"] = customer_dict.pop("id")
+            rental_dict.update(customer_dict)
         if self.video:
-            rental_dict.update(self.video.to_dict())
+            video_dict = self.video.to_dict()
+            video_dict["video_id"] = video_dict.pop("id")
+            rental_dict.update(video_dict)
         return rental_dict
     
     @classmethod
