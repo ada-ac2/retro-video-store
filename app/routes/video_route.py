@@ -49,18 +49,18 @@ def delete_customers_by_id(id):
     
     return jsonify(video.to_dict()),200
 
-# PUT /customers/<id>
+# PUT /videos/<id>
 @videos_bp.route("/<id>", methods=["PUT"])
-def put_customers_by_id(id):
-    customer = validate_model(Customer, id)
+def put_videos_by_id(id):
+    video = validate_model(Video, id)
     try:
         request_body = request.get_json()
-        customer.name = request_body["name"]
-        customer.postal_code = request_body["postal_code"]
-        customer.phone = request_body["phone"]
+        video.title = request_body["title"]
+        video.release_date = request_body["release_date"]
+        video.total_inventory = request_body["total_inventory"]
     except:
         abort(make_response(jsonify("Bad Request"), 400))
 
     db.session.commit()
     
-    return jsonify(customer.to_dict()),200
+    return jsonify(video.to_dict()),200
