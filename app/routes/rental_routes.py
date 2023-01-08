@@ -29,7 +29,7 @@ def create_rental():
 def read_all_rentals():
     rental_query = Rental.query
     rentals_response = []
-    for rental in rentals:
+    for rental in rental_query:
         rentals_response.append(
             {
                 "id": rental.id
@@ -79,10 +79,8 @@ def check_out():
     # )
 
     # db.session.add(new_video_rental)
-    
     # Update customer information
-    videos_checked_out_count = 1
-    customer.videos_checked_out_count = videos_checked_out_count
+    customer.videos_checked_out_count += 1
     db.session.commit()
     
     return make_response(jsonify({
@@ -120,8 +118,7 @@ def check_in():
     
     # Update customer information
     
-    videos_checked_out_count = customer.videos_checked_out_count - 1
-    customer.videos_checked_out_count = videos_checked_out_count
+    customer.videos_checked_out_count -= 1
     
     db.session.delete(rental_to_remove)
     db.session.commit()
@@ -132,6 +129,6 @@ def check_in():
     return make_response(jsonify({
         "customer_id": customer.id,
         "video_id": video.id,
-        "videos_checked_out_count": videos_checked_out_count,
+        "videos_checked_out_count": customer.videos_checked_out_count,
         "available_inventory": available_inventory
         }), 200)
