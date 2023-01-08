@@ -53,13 +53,29 @@ def get_customers_by_id(id):
     return jsonify(customer.to_dict())
 
 
-# PUT /customers/<id>
+
 # DELETE /customers/<id>
 @customers_bp.route("/<id>", methods=["DELETE"])
-def delete_customers_by_id(id):
+def put_customers_by_id(id):
     customer = validate_model(Customer, id)
 
     db.session.delete(customer)
+    db.session.commit()
+    
+    return jsonify(customer.to_dict()),200
+
+# PUT /customers/<id>
+@customers_bp.route("/<id>", methods=["PUT"])
+def delete_customers_by_id(id):
+    customer = validate_model(Customer, id)
+    try:
+        request_body = request.get_json()
+        customer.name = request_body["name"]
+        customer.postal_code = request_body["postal_code"]
+        customer.phone = request_body["phone"]
+    except:
+        abort(make_response(jsonify("Bad Request"), 400))
+
     db.session.commit()
     
     return jsonify(customer.to_dict()),200
