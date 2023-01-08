@@ -63,11 +63,16 @@ def create_rental_check_in():
     if check_outstanding:
         abort(make_response(jsonify(check_outstanding), 400))
 
-    return_rental = Rental(
-                        customer_id = customer.id,
-                        video_id = video.id
-                        )
+    #return_rental = Rental(
+     #                   customer_id=customer.id,
+      #                  video_id=video.id,
+       #                 status=1
+        #                )
+    return_rental = Rental.query.filter_by(customer_id=1, video_id=1).order_by(Rental.due_date.asc()).first()
+    return_rental.status = "Checked in"
+    # return_rental.returned_count += 1
     
+    customer.videos_checked_in_count += 1
     customer.videos_checked_out_count -= 1
     video.available_inventory += 1
 
