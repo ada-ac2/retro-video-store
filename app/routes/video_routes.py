@@ -68,13 +68,14 @@ def delete_video_by_id(video_id):
         "message": f"Video #{video_id} successfully deleted"
         }, 200)
 
-@video_bp.route("<video_id>/rentals", methods=["GET"])
-def display_rentals_by_video_id(video_id):
-    video = validate_model(Video, video_id)
-    rentals = Rental.query.get(video_id)
-    return make_response(
-        jsonify(rentals.to_dict()), 200)
+#@video_bp.route("<video_id>/rentals", methods=["GET"])
+# def display_rentals_by_video_id(video_id):
+#     video = validate_model(Video, video_id)
+#     rentals = Rental.query.get(video_id)
+#     return make_response(
+#         jsonify(rentals.to_dict()), 200)
 
+@video_bp.route("<video_id>/rentals", methods=["GET"])
 def get_rentals_by_video_id(video_id):
     
     video = validate_model(Video, video_id)

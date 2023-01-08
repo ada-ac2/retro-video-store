@@ -31,7 +31,7 @@ class Rental(db.Model):
         new_rental = Rental(
             customer_id=rental_data["customer_id"],
             video_id=rental_data["video_id"]
-          )
+        )
         return new_rental
 
     # def check_out_video(self, n):
