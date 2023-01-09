@@ -82,3 +82,12 @@ def delete_customers_by_id(id):
 
 
 # `GET /customers/<id>/rentals`
+@customers_bp.route("/<id>/rentals", methods=["GET"])
+def get_rentals_by_customer_id(id):
+    customer = validate_model(Customer, id)
+    response_body = []
+    for rental in customer.rentals:
+        response_body.append({"title":rental.video.title})
+
+    
+    return jsonify(response_body)
