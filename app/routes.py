@@ -210,16 +210,8 @@ def get_all_customers():
         # Sort by id in ascending order by default
         customer_query = customer_query.order_by(Customer.id.asc())
 
-    if page_num_query and count_query and page_num_query.isnumeric() and count_query.isnumeric():
-        customers = customer_query.paginate(
-            page=int(page_num_query), per_page=int(count_query))
-        customers_response = get_all_customer_helper(customers.items)
-    elif count_query and count_query.isnumeric() and (not page_num_query or not page_num_query.isnumeric()):
-        customers = customer_query.paginate(page=1, per_page=int(count_query))
-        customers_response = get_all_customer_helper(customers.items)
-    else:
-        customers = customer_query.all()
-        customers_response = get_all_customer_helper(customers)
+    customers_response = pagination_helper(
+        page_num_query, count_query, customer_query, get_all_customer_helper)
 
     return make_response(jsonify(customers_response), 200)
 
@@ -295,16 +287,8 @@ def get_all_videos():
         # Sort by id in ascending order by default
         videos_query = videos_query.order_by(Video.id.asc())
 
-    if page_num_query and count_query and page_num_query.isnumeric() and count_query.isnumeric():
-        videos = videos_query.paginate(
-            page=int(page_num_query), per_page=int(count_query))
-        video_response = get_all_videos_helper(videos.items)
-    elif count_query and count_query.isnumeric() and (not page_num_query or not page_num_query.isnumeric()):
-        videos = videos_query.paginate(page=1, per_page=int(count_query))
-        video_response = get_all_videos_helper(videos.items)
-    else:
-        videos = videos_query.all()
-        video_response = get_all_videos_helper(videos)
+    video_response = pagination_helper(
+        page_num_query, count_query, videos_query, get_all_videos_helper)
 
     return make_response(jsonify(video_response), 200)
 
