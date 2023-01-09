@@ -73,21 +73,22 @@ def get_rentals_by_video_id(video_id):
     
     video = validate_model(Video, video_id)
     # collect & process query params from http request
-    queries = request.args.to_dict()
-    sort, count, page_num = validate_and_process_query_params(Rental, queries)
+    #queries = request.args.to_dict()
+    #sort, count, page_num = validate_and_process_query_params(Rental, queries)
     # collect rentals using query params
-    rentals = create_model_query(video, sort, count, page_num)
+    request_query = request.args.to_dict()
+    sort, count, page_num = validate_and_process_query_params(Rental, request_query)
+    # collect rentals by customer id
+    rental_query = Rental.query.filter_by(video_id = video.id)
+    # default is sorted by asc rental id
+    rentals = rental_query.order_by(Rental.id.asc())
+    if count:
+        # limit selection of customers to view
+        rentals = rental_query.limit(count["count"])
+    #rentals = create_model_query(video, Video, sort, count, page_num)
     rentals_response = []
     for rental in video.rentals:
         rentals_response.append(rental.to_dict())
         print(rental.to_dict())
     return make_response(jsonify(rentals_response), 200)
-
-
-    #  request_query = request.args.to_dict()
-    # # collect & process query params from http request
-    # sort, count, page_num = validate_and_process_query_params(Video, request_query)
-    # # create query
-    # videos = Video.query
-    # videos = create_model_query(videos, Video, sort, count, page_num)
 

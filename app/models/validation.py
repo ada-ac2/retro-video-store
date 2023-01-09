@@ -86,17 +86,16 @@ def validate_and_process_query_params(cls, queries):
     return sort, count, page_num
 
 def create_model_query(models_query, cls, sort, count, page_num):
-    pass
-    # if sort:
-    #     # sort asc by given attribute e.g. sort=name
-    #     clause = getattr(cls, sort["sort"])
-    #     model_query = models_query.order_by(clause.asc())
-    # # else:
-    # #     models = models.order_by(cls.id.asc())
-    # if count:
-    #     # limit selection of customers to view
-    #     models_query = models_query.limit(count["count"])
-    # if page_num:
-    #     # check documentation for this!!!
-    #     pass
-    # return models_query
+    if sort:
+        # sort asc by given attribute e.g. sort=name
+        clause = getattr(cls, sort["sort"])
+        model_query = models_query.order_by(clause.asc())
+    # else:
+    #     models = models.order_by(cls.id.asc())
+    if count:
+        # limit selection of customers to view
+        models_query = models_query.limit(count["count"])
+    if page_num:
+        # check documentation for this!!!
+        pass
+    return models_query
