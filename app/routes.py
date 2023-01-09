@@ -328,7 +328,7 @@ def read_customer_rentals(customer_id):
 
     # validating count and page_num
     video_rentals = pageination_helper(Video,video_query,count,page_num).items
-
+    
     customer_rentals_response = []
 
     for video in video_rentals:

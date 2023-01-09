@@ -11,8 +11,8 @@ class Rental(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     due_date = db.Column(db.Date, nullable=True)
     #is_checked_out = db.Column(db.Boolean, default=True)
-    video_id = db.Column(db.Integer, db.ForeignKey('video.id'), nullable=False)
-    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
+    video_id = db.Column(db.Integer, db.ForeignKey('video.id'))
+    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'))
 
 '''
     @staticmethod
