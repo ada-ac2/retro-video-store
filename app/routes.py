@@ -105,7 +105,7 @@ def get_all_rental_videos_helpers(videos_list):
                 "total_inventory": video.Video.total_inventory,
                 "title": video.Video.title,
                 "due_date": video.due_date,
-                "checked_in" : video.checked_in
+                "checked_in": video.checked_in
             })
     return video_response
 
@@ -120,7 +120,7 @@ def get_all_videos_rental_customers_helper(customer_list):
                 "phone": customer.Customer.phone,
                 "postal_code": customer.Customer.postal_code,
                 "id": customer.Customer.id,
-                "checked_in" : customer.checked_in
+                "checked_in": customer.checked_in
             }
         )
     return customer_response
@@ -158,38 +158,41 @@ def get_all_overdue_helper(overdue_list):
 
     return overdue_response
 
+
 def get_all_videos_helper(videos_list):
     response = []
-    for video in videos_list: 
+    for video in videos_list:
         response.append(video.to_dict())
 
     return response
 
+
 def get_customer_rental_history_helper(history_records):
     response = []
-    for record in history_records: 
+    for record in history_records:
         response.append(
             {
-                "title" : record.title, 
-                "checkout_date" : record.checkout_date, 
-                "due_date" : record.due_date 
+                "title": record.title,
+                "checkout_date": record.checkout_date,
+                "due_date": record.due_date
             }
         )
     return response
 
+
 def get_video_rental_history_helper(history_records):
     response = []
-    for record in history_records: 
+    for record in history_records:
         response.append(
             {
-                "customer_id" : record.id, 
-                "name" : record.name, 
-                "postal_code" : record.postal_code, 
-                "checkout_date" : record.checkout_date, 
-                "due_date" : record.due_date
+                "customer_id": record.id,
+                "name": record.name,
+                "postal_code": record.postal_code,
+                "checkout_date": record.checkout_date,
+                "due_date": record.due_date
             }
         )
-    return response 
+    return response
 
 # ----------------------------------------------------------------------------------------------------------
 # -------------------------------------------- Routes ------------------------------------------------------
@@ -275,8 +278,8 @@ def delete_one_customer(customer_id):
 @videos_bp.route("", methods=["GET"])
 def get_all_videos():
     video_response = []
-    videos_query = Video.query 
-    
+    videos_query = Video.query
+
     is_sort = request.args.get("sort")
     count_query = request.args.get("count")
     page_num_query = request.args.get("page_num")
@@ -291,6 +294,7 @@ def get_all_videos():
         page_num_query, count_query, videos_query, get_all_videos_helper)
 
     return make_response(jsonify(video_response), 200)
+
 
 @videos_bp.route("/<video_id>", methods=["GET"])
 def get_one_video(video_id):
@@ -359,7 +363,7 @@ def checkout_one_video():
 
         # avaliable inventory = total inventory - total checkedout
         available_to_rent = video.total_inventory - \
-            Rental.query.filter_by(video_id=video.id, checked_in = False).count()
+            Rental.query.filter_by(video_id=video.id, checked_in=False).count()
         if available_to_rent < 1:
             abort(make_response(
                 {"message": "Could not perform checkout"}, 400))
@@ -375,8 +379,8 @@ def checkout_one_video():
             available_inventory=available_to_rent - 1
         )
 
-        if request_body.get("due_date"): 
-            new_rental.due_date = request_body["due_date"] 
+        if request_body.get("due_date"):
+            new_rental.due_date = request_body["due_date"]
 
     except KeyError as keyerror:
         abort(make_response(
@@ -400,15 +404,16 @@ def check_in_one_video():
         customer.videos_checked_out_count -= 1
         # Increment inventory when video is returned
         available_inventory = video.total_inventory - \
-            Rental.query.filter_by(video_id=video.id, checked_in = False).count() + 1
+            Rental.query.filter_by(
+                video_id=video.id, checked_in=False).count() + 1
 
         try:
             return_rental = Rental.query.filter_by(
-                customer_id = customer.id, video_id = video.id, checked_in = False).order_by(Rental.due_date.asc()).first()
+                customer_id=customer.id, video_id=video.id, checked_in=False).order_by(Rental.due_date.asc()).first()
             return_rental.checked_in = True
             db.session.commit()
             db.session.flush()
-            
+
         except:
             abort(make_response(
                 {"message": f"No outstanding rentals for customer {customer.id} and video {video.id}"}, 400))
@@ -485,12 +490,14 @@ def all_customers_with_overdue_videos():
     result_response = get_all_overdue_helper(query_response)
     return make_response(jsonify(result_response), 200)
 
-@customers_bp.route("/<id>/history", methods = ["GET"])
-def get_customer_rental_history(id): 
+
+@customers_bp.route("/<id>/history", methods=["GET"])
+def get_customer_rental_history(id):
     validate_model(Customer, id)
 
-    history_query = db.session.query(Rental.due_date, Rental.checkout_date, Video.title).filter(Rental.customer_id==id, Rental.checked_in==True, Rental.video_id==Video.id)
-    
+    history_query = db.session.query(Rental.due_date, Rental.checkout_date, Video.title).filter(
+        Rental.customer_id == id, Rental.checked_in == True, Rental.video_id == Video.id)
+
     is_sort = request.args.get("sort")
     count_query = request.args.get("count")
     page_num_query = request.args.get("page_num")
@@ -500,29 +507,31 @@ def get_customer_rental_history(id):
     else:
         # Sort by id in ascending order by default
         history_query = history_query.order_by(Video.id.asc())
-    
+
     history_response = pagination_helper(
         page_num_query, count_query, history_query, get_customer_rental_history_helper)
 
-    return make_response(jsonify(history_response), 200) 
+    return make_response(jsonify(history_response), 200)
 
 
-@videos_bp.route("/<id>/history", methods = ["GET"])
-def get_video_rental_history(id): 
+@videos_bp.route("/<id>/history", methods=["GET"])
+def get_video_rental_history(id):
     validate_model(Video, id)
-    history_query = db.session.query(Rental.due_date, Rental.checkout_date, Customer.id, Customer.name, Customer.postal_code).filter(Rental.customer_id==Customer.id, Rental.checked_in==True, Rental.video_id==id)
-    
+
+    history_query = db.session.query(Rental.due_date, Rental.checkout_date, Customer.id, Customer.name, Customer.postal_code).filter(
+        Rental.customer_id == Customer.id, Rental.checked_in == True, Rental.video_id == id)
+
     is_sort = request.args.get("sort")
     count_query = request.args.get("count")
     page_num_query = request.args.get("page_num")
 
     if is_sort:
-        history_query = sort_helper(Video, history_query, is_sort)
+        history_query = sort_helper(Customer, history_query, is_sort)
     else:
         # Sort by id in ascending order by default
-        history_query = history_query.order_by(Video.id.asc())
-    
+        history_query = history_query.order_by(Customer.id.asc())
+
     history_response = pagination_helper(
         page_num_query, count_query, history_query, get_video_rental_history_helper)
 
-    return make_response(jsonify(history_response), 200) 
+    return make_response(jsonify(history_response), 200)
