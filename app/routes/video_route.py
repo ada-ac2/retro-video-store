@@ -70,10 +70,9 @@ def put_videos_by_id(id):
 @videos_bp.route("/<id>/rentals", methods=["GET"])
 def get_rentals_by_video_id(id):
     video = validate_model(Video, id)
-    # rentals = Rental.query.filter(video_id=id).all()
     response_body = []
     for rental in video.rentals:
-        response_body.append(rental.to_dict())
+        response_body.append({"name":rental.customer.name})
 
     
     return jsonify(response_body)
