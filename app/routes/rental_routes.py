@@ -69,7 +69,7 @@ def check_out():
     return make_response(jsonify({
         "customer_id": customer.id,
         "video_id": video.id,
-        "due_date": new_rental.due_date,
+        "due_date": new_rental.due_date.strftime("%m-%d-%Y"),
         "videos_checked_out_count": customer.videos_checked_out_count,
         "available_inventory": available_inventory
         }), 200)
