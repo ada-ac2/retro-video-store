@@ -64,25 +64,15 @@ def validate_and_process_query_params(cls, queries):
         # check for sort method query param
         if kwarg == "sort":
             # if sort string is not a model attribute
-            if queries[kwarg] not in attrs:
-                abort(make_response({
-                    "message": f"{queries[kwarg]} is not a valid attribute to sort by"
-                }, 400))
-            else:
-                # add sort string to sort kwarg dict
+            if queries[kwarg] in attrs:
                 sort[kwarg] = queries[kwarg]
         # check for limit method query param
-        elif kwarg == "count":
+        if kwarg == "count":
             # add count to count kwarg dict
             count[kwarg] = queries[kwarg]
         # check for page count method query param
-        elif kwarg == "page_num":
+        if kwarg == "page_num":
             page_num[kwarg] = queries[kwarg]
-        else:
-            # query param is not a valid query method
-            abort(make_response(
-                {"message" : f"{kwarg} is an invalid query"}, 400
-            ))
     return sort, count, page_num
 
 def create_model_query(models_query, cls, sort, count, page_num):

@@ -16,16 +16,19 @@ def display_all_customers():
     sort, count, page_num = validate_and_process_query_params(Customer, request_query)
     # collect customers
     customer_query = Customer.query
-    # default is sorted by ascending customer id
-    customers = customer_query.order_by(Customer.id.asc())
     # check for additional query params
     if sort:
         # sort asc by given attribute e.g. sort=name
-        clause = getattr(Customer, sort["sort"])
+        clause = getattr(Customer, sort["sort"]) 
         customers = customer_query.order_by(clause.asc())
-    if count:
+    else:
+        # default is sorted by ascending customer id
+        customers = customer_query.order_by(Customer.id.asc())
+    if count and not page_num:
         # limit selection of customers to view
         customers = customer_query.limit(count["count"])
+    if page_num:
+        customers = customer_query.paginate(page=int(page_num["page_num"]), per_page=int(count["count"])).items
     # fill http response list
     response = []
     for customer in customers:
@@ -73,39 +76,22 @@ def delete_a_customer(customer_id):
 def display_customer_rentals(customer_id):
     customer = validate_model(Customer, customer_id)
     request_query = request.args.to_dict()
-    sort, count, page_num = validate_and_process_query_params(Rental, request_query)
+    sort, count, page_num = validate_and_process_query_params(Video, request_query)
 
     join_query = (
         db.session.query(Rental, Video)
         .join(Video, Rental.video_id==Video.id)
         .filter(Rental.customer_id == customer_id)
     )
-
-    sort_params = ["title", "release_date"]
-    for param in sort_params:
-        if sort:
-            if sort["sort"] == param:
-                join_query = join_query.order_by(param)
-        if count:
-            try:
-                count["count"] = int(count["count"])
-            except:
-                abort(make_response({"message": "count is not an integer"}, 400))
-
-            join_query = join_query.limit(count["count"])
-
-        ### PAGINATE NOT WORKING #######
-        #     if page_num:
-        #         try:
-        #             page_num["page_num"] = int(page_num["page_num"])
-        #         except:
-        #             abort(make_response({"message": "page_num is not an integer"}, 400))
-        #     else:
-        #         page_num["page_num"] = 1
-                
-        #     join_query = join_query.paginate(page=page_num["page_num"], per_page=count["count"]).items
-        else:
-            join_query = join_query
+    if sort:
+        join_query = join_query.order_by(sort["sort"])
+    else:
+        # default sort is ascending rental id
+        join_query = join_query.order_by(Rental.id.asc())
+    if count and not page_num:
+        join_query = join_query.limit(count["count"])
+    if page_num:
+        join_query = join_query.paginate(page=int(page_num["page_num"]), per_page=int(count["count"])).items
 
     response_body = []
     for row in join_query:
