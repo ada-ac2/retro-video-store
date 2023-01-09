@@ -23,7 +23,7 @@ def validate_model(cls, model_id):
         abort(make_response({"message":f"{cls.__name__} {model_id} was not found"}, 404))    
     return model 
 
-#----------------Sort fuction-------------------------------------------------------------------------
+#----------------Sort fuction---------------------------------
 def sort_helper(cls, sort_query, atr = None): 
 
     if atr == "name":
@@ -41,7 +41,7 @@ def sort_helper(cls, sort_query, atr = None):
     
     return sort_query
 
-#----------------Pagination fuction-------------------------------------------------------------------------
+#----------------Pagination fuction------------------------------
 def pageination_helper(cls, query, count, page_num):
     try:
         count = int(count)
@@ -60,7 +60,9 @@ def pageination_helper(cls, query, count, page_num):
     return query_page
 
 def validate_request_body(request_body): 
-    if "name" not in request_body or "phone" not in request_body or "postal_code" not in request_body:
+    if "customer_id" not in request_body or "name" not in request_body \
+    or "phone" not in request_body or "postal_code" not in request_body \
+        or "video_id" not in request_body:
         abort(make_response("Invalid Request", 400))
 
 #validation for Video route
@@ -72,13 +74,18 @@ def validate_video_request_body(request_body):
 
 def validate_rental_request_body(request_body):
     if "customer_id" not in request_body:
-        return{"message": "Invalid, Request body missing 'customer_id'"}, 400
+        abort(make_response(f"Invalid, Request body missing 'customer_id'", 400))
     if "video_id" not in request_body:
-        return {"message": "Invalid, Request body missing 'video_id'"}, 400
+        abort(make_response(f"Invalid, Request body missing 'video_id'", 400))
 
 def due_date():
     due_date = datetime.today() + timedelta(days=7)
     return due_date
+
+######################
+######################
+#--------Customer-----
+######################
 #--------------------------- Customer Route Functions -----------------------------------------
 
 @customers_bp.route("", methods=["POST"])
@@ -223,21 +230,13 @@ def delete_video_by_id(video_id):
 def checkout_video():
     
     request_body = request.get_json()
+    validate_rental_request_body(request_body)
 
-    if "customer_id" not in request_body:
-        return{"message": "Invalid, Request body missing 'customer_id'"}, 400
-    if "video_id" not in request_body:
-        return {"message": "Invalid, Request body missing 'video_id'"}, 400
-    
     video_id = request_body["video_id"]
-    video = Video.get_id(video_id)
-    if not video:
-        return {"message": f"Video {video_id} was not found"}, 404
+    video = validate_model(Video,video_id)
 
     customer_id = request_body["customer_id"]
-    customer = Customer.get_id(customer_id)
-    if not customer:
-        return {"message": f"Customer {customer_id} was not found"}, 404
+    customer = validate_model(Customer,customer_id)
 
     return_date = due_date()
     if video.total_inventory - Rental.query.filter_by(video_id=video_id).count() <= 0:
@@ -270,22 +269,14 @@ def checkout_video():
 @rentals_bp.route("/check-in", methods=["POST"])
 def checkin_videos():
     request_body = request.get_json()
-
-    if "customer_id" not in request_body:
-        return{"message": "Invalid, Request body missing 'customer_id'"}, 400
-    if "video_id" not in request_body:
-        return {"message": "Invalid, Request body missing 'video_id'"}, 400
+    validate_rental_request_body(request_body)
 
     customer_id = request_body["customer_id"]
-    customer = Customer.get_id(customer_id)
-    if not customer:
-        return {"message": f"Customer {customer_id} was not found"}, 404
-    
+    customer = validate_model(Customer,customer_id)
+
     video_id = request_body["video_id"]
-    video = Video.get_id(video_id)
-    if not video:
-        return {"message": f"Video {video_id} was not found"}, 404
-    
+    video = validate_model(Video,video_id)
+
     return_date = due_date()
 
     if video == Rental.query.filter_by(video_id=video_id):
@@ -321,9 +312,7 @@ def checkin_videos():
 
 @customers_bp.route("<customer_id>/rentals", methods=["GET"])
 def read_customer_rentals(customer_id):
-    customer = Customer.get_id(customer_id)
-    if customer is None:
-        return {"message": "Customer 1 was not found"}, 404
+    customer = validate_model(Customer,customer_id)
 
     video_query = Video.query
     is_sort = request.args.get("sort")
@@ -364,9 +353,7 @@ def read_customer_rentals(customer_id):
 
 @videos_bp.route("<video_id>/rentals", methods=["GET"])
 def read_video_rentals(video_id):
-    video = Video.get_id(video_id)
-    if video is None:
-        return {"message": "Video 1 was not found"}, 404
+    video = validate_model(Video,video_id)
 
     customer_query = Customer.query
     is_sort = request.args.get("sort")
