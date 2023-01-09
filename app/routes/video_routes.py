@@ -1,8 +1,9 @@
 from app import db
 from app.models.video import Video
 from app.models.rental import Rental
+from app.models.customer import Customer
 from app.models.validation import validate_model, validate_request, validate_and_process_query_params, create_model_query
-from flask import Blueprint, jsonify, make_response, request
+from flask import Blueprint, jsonify, make_response, request, abort
 
 video_bp = Blueprint("video_bp", __name__, url_prefix="/videos")
 
@@ -70,25 +71,38 @@ def delete_video_by_id(video_id):
 
 @video_bp.route("<video_id>/rentals", methods=["GET"])
 def get_rentals_by_video_id(video_id):
-    
     video = validate_model(Video, video_id)
-    # collect & process query params from http request
-    #queries = request.args.to_dict()
-    #sort, count, page_num = validate_and_process_query_params(Rental, queries)
     # collect rentals using query params
     request_query = request.args.to_dict()
-    sort, count, page_num = validate_and_process_query_params(Rental, request_query)
-    # collect rentals by customer id
-    rental_query = Rental.query.filter_by(video_id = video.id)
-    # default is sorted by asc rental id
-    rentals = rental_query.order_by(Rental.id.asc())
-    if count:
-        # limit selection of customers to view
-        rentals = rental_query.limit(count["count"])
-    #rentals = create_model_query(video, Video, sort, count, page_num)
-    rentals_response = []
-    for rental in video.rentals:
-        if rental.status == "checked_out":
-            rentals_response.append(rental.to_dict())
-    return make_response(jsonify(rentals_response), 200)
+    sort, count, page_num = validate_and_process_query_params(Customer, request_query)
+
+    join_query = (
+        db.session.query(Rental, Customer)
+        .join(Customer, Rental.customer_id==Customer.id)
+        .filter(Rental.video_id == video_id)
+    )
+    sort_params=["name", "registered_at", "postal_code"]
+    for param in sort_params:
+        if sort:
+            if sort["sort"] == param:
+                join_query = join_query.order_by(param)
+        if count:
+            try:
+                count["count"] = int(count["count"])
+            except:
+                abort(make_response({"message": "count is not an integer"}, 400))
+
+            join_query = join_query.limit(count["count"])
+        else:
+            join_query = join_query
+    ###     PAGINATE QUERY MISSING ######
+    response_body = []
+    for row in join_query:
+        response_body.append({
+            "id": row.Customer.id,
+            "title": row.Customer.name,
+            "total_inventory": row.Customer.registered_at,
+            "release_date": row.Customer.postal_code,
+        })
+    return make_response(jsonify(response_body),200)
 

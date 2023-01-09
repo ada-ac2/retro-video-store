@@ -77,7 +77,7 @@ def validate_and_process_query_params(cls, queries):
             count[kwarg] = queries[kwarg]
         # check for page count method query param
         elif kwarg == "page_num":
-            page_num[kwarg] == queries[kwarg]
+            page_num[kwarg] = queries[kwarg]
         else:
             # query param is not a valid query method
             abort(make_response(

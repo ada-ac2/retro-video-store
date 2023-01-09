@@ -1,5 +1,5 @@
 from app import db
-from flask import Blueprint, jsonify, make_response, request
+from flask import Blueprint, jsonify, make_response, request, abort
 from ..models.customer import Customer
 from ..models.video import Video
 from ..models.rental import Rental
@@ -72,19 +72,48 @@ def delete_a_customer(customer_id):
 @customers_bp.route("/<customer_id>/rentals", methods=["GET"])
 def display_customer_rentals(customer_id):
     customer = validate_model(Customer, customer_id)
-    # collect & process query params from http request
     request_query = request.args.to_dict()
     sort, count, page_num = validate_and_process_query_params(Rental, request_query)
-    # collect rentals by customer id
-    rental_query = Rental.query.filter_by(customer_id = customer.id)
-    # default is sorted by asc rental id
-    rentals = rental_query.order_by(Rental.id.asc())
-    if count:
-        # limit selection of customers to view
-        rentals = rental_query.limit(count["count"])
-    # fill http response list
-    rentals_response = []
-    for rental in rentals:
-        if rental.status == "checked_out":
-            rentals_response.append(rental.to_dict())
-    return make_response(jsonify(rentals_response), 200)
+
+    join_query = (
+        db.session.query(Rental, Video)
+        .join(Video, Rental.video_id==Video.id)
+        .filter(Rental.customer_id == customer_id)
+    )
+
+    sort_params = ["title", "release_date"]
+    for param in sort_params:
+        if sort:
+            if sort["sort"] == param:
+                join_query = join_query.order_by(param)
+        if count:
+            try:
+                count["count"] = int(count["count"])
+            except:
+                abort(make_response({"message": "count is not an integer"}, 400))
+
+            join_query = join_query.limit(count["count"])
+
+        ### PAGINATE NOT WORKING #######
+        #     if page_num:
+        #         try:
+        #             page_num["page_num"] = int(page_num["page_num"])
+        #         except:
+        #             abort(make_response({"message": "page_num is not an integer"}, 400))
+        #     else:
+        #         page_num["page_num"] = 1
+                
+        #     join_query = join_query.paginate(page=page_num["page_num"], per_page=count["count"]).items
+        else:
+            join_query = join_query
+
+    response_body = []
+    for row in join_query:
+        response_body.append({
+            "id": row.Video.id,
+            "title": row.Video.title,
+            "total_inventory": row.Video.total_inventory,
+            "release_date": row.Video.release_date
+        })
+
+    return make_response(jsonify(response_body),200)
