@@ -441,7 +441,7 @@ def customers_have_the_video_checked_out(id):
 
 
 # --------------------------------
-# -------- Rental History --------
+# ----- Optional Wave Routes -----
 # --------------------------------
 
 @rental_bp.route("/overdue", methods=["GET"])
@@ -449,7 +449,22 @@ def all_customers_with_overdue_videos():
     join_query = db.session.query(Rental.checkout_date, Rental.due_date, Customer.name, Customer.postal_code, Customer.id, Video.id, Video.title).filter(
         date.today() > Rental.due_date, Rental.checked_in == False, Rental.customer_id == Customer.id, Rental.video_id == Video.id)
     query_response = join_query.all()
-    print(query_response)
 
     result_response = get_all_overdue_helper(query_response)
     return make_response(jsonify(result_response), 200)
+
+@customers_bp.route("/<id>/history", methods = ["GET"])
+def get_customer_rental_history(id): 
+    history_query = db.session.query(Rental.due_date, Rental.checkout_date, Video.title).filter(Rental.customer_id==id, Rental.checked_in==True, Rental.video_id==Video.id)
+    history_records = history_query.all()
+
+    response = []
+    for record in history_records: 
+        response.append(
+            {
+                "title" : record.title, 
+                "checkout_date" : record.checkout_date, 
+                "due_date" : record.due_date 
+            }
+        )
+    return make_response(jsonify(response), 200) 
