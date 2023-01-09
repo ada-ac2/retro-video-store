@@ -95,7 +95,7 @@ def get_all_customer_helper(customer_list):
     return customers_response
 
 
-def get_all_videos_helpers(videos_list):
+def get_all_rental_videos_helpers(videos_list):
     video_response = []
     for video in videos_list:
         video_response.append(
@@ -158,6 +158,12 @@ def get_all_overdue_helper(overdue_list):
 
     return overdue_response
 
+def get_all_videos_helper(videos_list):
+    response = []
+    for video in videos_list: 
+        response.append(video.to_dict())
+
+    return response
 # ----------------------------------------------------------------------------------------------------------
 # -------------------------------------------- Routes ------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------
@@ -249,13 +255,31 @@ def delete_one_customer(customer_id):
 
 @videos_bp.route("", methods=["GET"])
 def get_all_videos():
-    videos_response = []
-    videos = Video.query.all()
+    video_response = []
+    videos_query = Video.query 
+    
+    is_sort = request.args.get("sort")
+    count_query = request.args.get("count")
+    page_num_query = request.args.get("page_num")
 
-    for video in videos:
-        videos_response.append(video.to_dict())
-    return make_response(jsonify(videos_response), 200)
+    if is_sort:
+        videos_query = sort_helper(Video, videos_query, is_sort)
+    else:
+        # Sort by id in ascending order by default
+        videos_query = videos_query.order_by(Video.id.asc())
 
+    if page_num_query and count_query and page_num_query.isnumeric() and count_query.isnumeric():
+        videos = videos_query.paginate(
+            page=int(page_num_query), per_page=int(count_query))
+        video_response = get_all_videos_helper(videos.items)
+    elif count_query and count_query.isnumeric() and (not page_num_query or not page_num_query.isnumeric()):
+        videos = videos_query.paginate(page=1, per_page=int(count_query))
+        video_response = get_all_videos_helper(videos.items)
+    else:
+        videos = videos_query.all()
+        video_response = get_all_videos_helper(videos)
+
+    return make_response(jsonify(video_response), 200)
 
 @videos_bp.route("/<video_id>", methods=["GET"])
 def get_one_video(video_id):
@@ -409,7 +433,7 @@ def videos_customer_checked_out(id):
         join_query = join_query.order_by(Video.id.asc())
 
     videos_response = pagination_helper(
-        page_num_query, count_query, join_query, get_all_videos_helpers)
+        page_num_query, count_query, join_query, get_all_rental_videos_helpers)
 
     return make_response(jsonify(videos_response), 200)
 
@@ -452,6 +476,7 @@ def all_customers_with_overdue_videos():
 
 @customers_bp.route("/<id>/history", methods = ["GET"])
 def get_customer_rental_history(id): 
+    validate_model(Customer, id)
     history_query = db.session.query(Rental.due_date, Rental.checkout_date, Video.title).filter(Rental.customer_id==id, Rental.checked_in==True, Rental.video_id==Video.id)
     history_records = history_query.all()
 
@@ -468,6 +493,7 @@ def get_customer_rental_history(id):
 
 @videos_bp.route("/<id>/history", methods = ["GET"])
 def get_video_rental_history(id): 
+    validate_model(Video, id)
     history_query = db.session.query(Rental.due_date, Rental.checkout_date, Customer.id, Customer.name, Customer.postal_code).filter(Rental.customer_id==Customer.id, Rental.checked_in==True, Rental.video_id==id)
     history_records = history_query.all()
 
