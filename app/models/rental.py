@@ -3,8 +3,8 @@ from app import db
 
 class Rental(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"))
-    video_id = db.Column(db.Integer, db.ForeignKey("video.id"))
+    customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"),nullable = False)
+    video_id = db.Column(db.Integer, db.ForeignKey("video.id"),nullable = False)
     due_date = db.Column(db.DateTime, default=(datetime.date.today()+datetime.timedelta(days=7)))
     #videos_checked_out_count = db.Column(db.Integer)
     available_inventory = db.Column(db.Integer)
