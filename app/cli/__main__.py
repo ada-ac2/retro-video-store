@@ -1,8 +1,10 @@
+from json import dumps
 import typer
 from typing import Optional
 import requests
 
 SERVICE_URI = "http://127.0.0.1:5000"
+requests_session = requests.Session()
 
 cli = typer.Typer()
 
@@ -19,15 +21,15 @@ def list(sort:str=typer.Option("id", help="The order"),
         page_num:str=typer.Option("", help="Which page will be displae"),
         count:str=typer.Option("", help="Each page will display")
     ):
-    response = requests.get(f"{SERVICE_URI}/customers")
-    print(f"Status code: {response.status_code}")
-    print(f"Body as JSON: {response.json()}")
+    response = requests_session.get(f"{SERVICE_URI}/customers")
+    result = {"status_code": response.status_code, "data": response.json()}
+    print(dumps(result))
 
 @customer_cli.command()
 def get(id: int):
-    response = requests.get(f"{SERVICE_URI}/customers/{id}")
-    print(f"Status code: {response.status_code}")
-    print(f"Body as JSON: {response.json()}")
+    response = requests_session.get(f"{SERVICE_URI}/customers/{id}")
+    result = {"status_code": response.status_code, "data": response.json()}
+    print(dumps(result))
 
 @customer_cli.command()
 def new(
@@ -35,13 +37,13 @@ def new(
     postal_code: str = typer.Option(..., help="Customer's postal code"),
     phone: str = typer.Option(..., help="Customer's phone number"),
 ):
-    response = requests.post(f"{SERVICE_URI}/customers", json={
+    response = requests_session.post(f"{SERVICE_URI}/customers", json={
         "name": name,
         "postal_code": postal_code,
         "phone": phone,
     })
-    print(f"Status code: {response.status_code}")
-    print(f"Body as JSON: {response.json()}")
+    result = {"status_code": response.status_code, "data": response.json()}
+    print(dumps(result))
 
 
 
