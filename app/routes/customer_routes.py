@@ -20,16 +20,17 @@ def display_all_customers():
     if sort:
         # sort asc by given attribute e.g. sort=name
         clause = getattr(Customer, sort) 
-        customers = customer_query.order_by(clause.asc())
+        customer_query = customer_query.order_by(clause.asc())
     else:
         # default is sorted by ascending customer id
-        customers = customer_query.order_by(Customer.id.asc())
+        customer_query = customer_query.order_by(Customer.id.asc())
     if count and not page_num:
         # limit selection of customers to view
-        customers = customer_query.limit(count)
+        customer_query = customer_query.limit(count)
     if page_num:
-        customers = customer_query.paginate(page=int(page_num), per_page=int(count)).items
+        customer_query = customer_query.paginate(page=int(page_num), per_page=int(count)).items
     # fill http response list
+    customers = customer_query.all()
     response = []
     for customer in customers:
         response.append(customer.to_dict())
