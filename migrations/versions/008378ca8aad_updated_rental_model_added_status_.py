@@ -1,8 +1,8 @@
-"""empty message
+"""Updated Rental model. Added status attribute.
 
-Revision ID: 7ae5e4bab0e8
+Revision ID: 008378ca8aad
 Revises: 
-Create Date: 2023-01-08 14:29:47.090205
+Create Date: 2023-01-09 11:30:48.665453
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '7ae5e4bab0e8'
+revision = '008378ca8aad'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -29,7 +29,7 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('video',
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('title', sa.String(), nullable=False),
     sa.Column('release_date', sa.Date(), nullable=False),
     sa.Column('total_inventory', sa.Integer(), nullable=False),
@@ -37,7 +37,7 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('rental',
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('due_date', sa.DateTime(), nullable=False),
     sa.Column('status', sa.String(), nullable=False),
     sa.Column('customer_id', sa.Integer(), nullable=True),

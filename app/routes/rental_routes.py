@@ -9,8 +9,17 @@ from datetime import datetime, timedelta
 
 rental_bp = Blueprint("rental_bp", __name__, url_prefix="/rentals")
 
+# GET all rentals
+@rental_bp.route("", methods=["GET"])
+def get_rentals():
+    rentals_response = []
+    rental_query = Rental.query
+    rentals = rental_query.all()
+    for rental in rentals:
+        rentals_response.append(rental.to_dict())
+    return jsonify(rentals_response)
 
-# #POST /rentals/check-out
+# POST /rentals/check-out
 @rental_bp.route("/check-out", methods = ["POST"])
 def create_rental_check_out():
     request_body = request.get_json()
@@ -45,7 +54,7 @@ def create_rental_check_out():
     return rental_response, 200    
 
 
-# #POST /rentals/check-in
+# POST /rentals/check-in
 @rental_bp.route("/check-in", methods = ["POST"])
 def create_rental_check_in():
     request_body = request.get_json()
