@@ -24,15 +24,16 @@ def display_all_customers():
     else:
         # default is sorted by ascending customer id
         customer_query = customer_query.order_by(Customer.id.asc())
-    if count and not page_num:
-        # limit selection of customers to view
-        customer_query = customer_query.limit(count)
-    if page_num:
-        customer_query = customer_query.paginate(page=int(page_num), per_page=int(count)).items
+
+    if count:
+        page=int(page_num) if page_num else 1
+        customer_query = customer_query.paginate(page=page, per_page=int(count)).items
+    else:
+        customer_query = customer_query.all() 
     # fill http response list
-    customers = customer_query.all()
+    
     response = []
-    for customer in customers:
+    for customer in customer_query:
         response.append(customer.to_dict())
     return jsonify(response)
 
