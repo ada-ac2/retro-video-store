@@ -12,9 +12,21 @@ def get_all_videos():
     request_query = request.args.to_dict()
     # collect & process query params from http request
     sort, count, page_num = validate_and_process_query_params(Video, request_query)
-    # create query
-    videos = Video.query
-    videos = create_model_query(videos, Video, sort, count, page_num)
+    video_query = Video.query
+    # check for additional query params
+    if sort:
+        # sort asc by given attribute e.g. sort=name
+        clause = getattr(Video, sort["sort"]) 
+        videos = video_query.order_by(clause.asc())
+    else:
+        # default is sorted by ascending customer id
+        videos = video_query.order_by(Video.id.asc())
+    if count and not page_num:
+        # limit selection of customers to view
+        videos = video_query.limit(count["count"])
+    if page_num:
+        videos = video_query.paginate(page=int(page_num["page_num"]), per_page=int(count["count"])).items
+
     # fill http response list
     videos_response = []
     for video in videos:
@@ -74,33 +86,28 @@ def get_rentals_by_video_id(video_id):
     video = validate_model(Video, video_id)
     # collect rentals using query params
     request_query = request.args.to_dict()
-    sort, count, page_num = validate_and_process_query_params(Customer, request_query)
+    sort, count, page_num = validate_and_process_query_params(Rental, request_query)
 
     join_query = (
-        db.session.query(Rental, Customer)
-        .join(Customer, Rental.customer_id==Customer.id)
-        .filter(Rental.video_id == video_id)
+        db.session.query(Rental, Video)
+        .join(Video, Rental.video_id==Video.id)
+        .filter(Rental.customer_id == Customer.id)
     )
-    sort_params=["name", "registered_at", "postal_code"]
-    for param in sort_params:
-        if sort:
-            if sort["sort"] == param:
-                join_query = join_query.order_by(param)
-        if count:
-            try:
-                count["count"] = int(count["count"])
-            except:
-                abort(make_response({"message": "count is not an integer"}, 400))
+    if sort:
+        join_query = join_query.order_by(sort["sort"])
+    else:
+        # default sort is ascending rental id
+        join_query = join_query.order_by(Rental.id.asc())
+    if count and not page_num:
+        join_query = join_query.limit(count["count"])
+    if page_num:
+        join_query = join_query.paginate(page=int(page_num["page_num"]), per_page=int(count["count"])).items
 
-            join_query = join_query.limit(count["count"])
-        else:
-            join_query = join_query
-    ###     PAGINATE QUERY MISSING ######
     response_body = []
     for row in join_query:
         response_body.append({
             "id": row.Customer.id,
-            "name": row.Customer.name,
+            "title": row.Customer.name,
             "total_inventory": row.Customer.registered_at,
             "release_date": row.Customer.postal_code,
         })
