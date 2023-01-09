@@ -47,9 +47,13 @@ def new(
 
 @customer_cli.command()
 def delete(id:int):
-    response = requests_session.get(f"{SERVICE_URI}/customers/{id}")
+    response = requests_session.delete(f"{SERVICE_URI}/customers/{id}")
     result = {"status_code": response.status_code, "data": response.json()}
     print(dumps(result))
+
+@customer_cli.command()
+def update(id:int):
+    response = requests_session.put(f"")
 
 
 

@@ -83,12 +83,18 @@ def test_delete_customer_one_successful(app_requests_session):
 
     #Act
     output = runner.invoke(cli, ["customer", "delete", "1"])
+    output_test = runner.invoke(cli, ["customer", "list"])
 
     #Assert
     assert output.exit_code == 0
     result = json.loads(output.stdout)
     assert result["status_code"] == 200
     assert result["data"]["id"] == 1
+    assert output_test.exit_code == 0
+    result_test = json.loads(output_test.stdout)
+    assert len(result_test["data"]) == 0
+
+
 
 
 
