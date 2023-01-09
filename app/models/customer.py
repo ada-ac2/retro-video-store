@@ -14,7 +14,7 @@ class Customer(db.Model):
         customer_dict = {
             "id": self.id,
             "name": self.name,
-            "registered_at": self.registered_at,
+            "registered_at": self.registered_at.strftime("%m-%d-%Y"),
             "postal_code": self.postal_code,
             "phone": self.phone, 
             "videos_checked_out_count": self.videos_checked_out_count

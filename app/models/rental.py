@@ -14,7 +14,7 @@ class Rental(db.Model):
             "id": self.id,
             "customer_id": self.customer_id,
             "video_id": self.video_id,
-            "due_date": self.due_date
+            "due_date": self.due_date.strftime("%m-%d-%Y")
         }
 
         return rental_dict

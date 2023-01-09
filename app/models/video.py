@@ -12,7 +12,7 @@ class Video(db.Model):
         video_dict = {
             "id": self.id,
             "title": self.title,
-            "release_date": self.release_date,
+            "release_date": self.release_date.strftime("%m-%d-%Y"),
             "total_inventory": self.total_inventory
         }
 
