@@ -100,7 +100,7 @@ def get_rentals_by_video_id(video_id):
     for row in join_query:
         response_body.append({
             "id": row.Customer.id,
-            "title": row.Customer.name,
+            "name": row.Customer.name,
             "total_inventory": row.Customer.registered_at,
             "release_date": row.Customer.postal_code,
         })
