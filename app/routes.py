@@ -3,7 +3,7 @@ from app import db
 from app.models.video import Video 
 from app.models.customer import Customer
 from app.models.rental import Rental
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import sys
 
 customers_bp = Blueprint("customer_bp", __name__, url_prefix="/customers")
@@ -79,7 +79,7 @@ def validate_rental_request_body(request_body):
         abort(make_response(f"Invalid, Request body missing 'video_id'", 400))
 
 def due_date():
-    due_date = datetime.today() + timedelta(days=7)
+    due_date = date.today() + timedelta(days=7)
     return due_date
 
 ######################
@@ -247,6 +247,7 @@ def checkout_video():
         video_id=request_body["video_id"],
         due_date= return_date
     )
+
 
     db.session.add(rental)
     db.session.commit()
