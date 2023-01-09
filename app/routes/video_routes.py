@@ -93,6 +93,7 @@ def get_rentals_by_video_id(video_id):
         .join(Video, Rental.video_id==Video.id)
         .filter(Rental.customer_id == Customer.id)
     )
+   
     if sort:
         join_query = join_query.order_by(sort["sort"])
     else:
@@ -106,10 +107,10 @@ def get_rentals_by_video_id(video_id):
     response_body = []
     for row in join_query:
         response_body.append({
-            "id": row.Customer.id,
-            "title": row.Customer.name,
-            "total_inventory": row.Customer.registered_at,
-            "release_date": row.Customer.postal_code,
+            "due_date": row.Rental.due_date,
+            "name": row.Rental.customer.name,
+            "phone": row.Rental.customer.phone,
+            "postal_code": row.Rental.customer.postal_code,
         })
     return make_response(jsonify(response_body),200)
 
