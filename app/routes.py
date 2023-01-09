@@ -130,17 +130,17 @@ def pagination_helper(page_num_query, count_query, query, get_record_function):
     if page_num_query and count_query and page_num_query.isnumeric() and count_query.isnumeric():
         query = query.paginate(
             page=int(page_num_query), per_page=int(count_query))
-        customer_response = get_record_function(
+        response = get_record_function(
             query.items)
     elif count_query and count_query.isnumeric() and (not page_num_query or not page_num_query.isnumeric()):
         query = query.paginate(page=1, per_page=int(count_query))
-        customer_response = get_record_function(
+        response = get_record_function(
             query.items)
     else:
         query = query.all()
-        customer_response = get_record_function(query)
+        response = get_record_function(query)
 
-    return customer_response
+    return response
 
 
 def get_all_overdue_helper(overdue_list):
@@ -164,6 +164,33 @@ def get_all_videos_helper(videos_list):
         response.append(video.to_dict())
 
     return response
+
+def get_customer_rental_history_helper(history_records):
+    response = []
+    for record in history_records: 
+        response.append(
+            {
+                "title" : record.title, 
+                "checkout_date" : record.checkout_date, 
+                "due_date" : record.due_date 
+            }
+        )
+    return response
+
+def get_video_rental_history_helper(history_records):
+    response = []
+    for record in history_records: 
+        response.append(
+            {
+                "customer_id" : record.id, 
+                "name" : record.name, 
+                "postal_code" : record.postal_code, 
+                "checkout_date" : record.checkout_date, 
+                "due_date" : record.due_date
+            }
+        )
+    return response 
+
 # ----------------------------------------------------------------------------------------------------------
 # -------------------------------------------- Routes ------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------
@@ -477,35 +504,41 @@ def all_customers_with_overdue_videos():
 @customers_bp.route("/<id>/history", methods = ["GET"])
 def get_customer_rental_history(id): 
     validate_model(Customer, id)
-    history_query = db.session.query(Rental.due_date, Rental.checkout_date, Video.title).filter(Rental.customer_id==id, Rental.checked_in==True, Rental.video_id==Video.id)
-    history_records = history_query.all()
 
-    response = []
-    for record in history_records: 
-        response.append(
-            {
-                "title" : record.title, 
-                "checkout_date" : record.checkout_date, 
-                "due_date" : record.due_date 
-            }
-        )
-    return make_response(jsonify(response), 200) 
+    history_query = db.session.query(Rental.due_date, Rental.checkout_date, Video.title).filter(Rental.customer_id==id, Rental.checked_in==True, Rental.video_id==Video.id)
+    
+    is_sort = request.args.get("sort")
+    count_query = request.args.get("count")
+    page_num_query = request.args.get("page_num")
+
+    if is_sort:
+        history_query = sort_helper(Video, history_query, is_sort)
+    else:
+        # Sort by id in ascending order by default
+        history_query = history_query.order_by(Video.id.asc())
+    
+    history_response = pagination_helper(
+        page_num_query, count_query, history_query, get_customer_rental_history_helper)
+
+    return make_response(jsonify(history_response), 200) 
+
 
 @videos_bp.route("/<id>/history", methods = ["GET"])
 def get_video_rental_history(id): 
     validate_model(Video, id)
     history_query = db.session.query(Rental.due_date, Rental.checkout_date, Customer.id, Customer.name, Customer.postal_code).filter(Rental.customer_id==Customer.id, Rental.checked_in==True, Rental.video_id==id)
-    history_records = history_query.all()
+    
+    is_sort = request.args.get("sort")
+    count_query = request.args.get("count")
+    page_num_query = request.args.get("page_num")
 
-    response = []
-    for record in history_records: 
-        response.append(
-            {
-                "customer_id" : record.id, 
-                "name" : record.name, 
-                "postal_code" : record.postal_code, 
-                "checkout_date" : record.checkout_date, 
-                "due_date" : record.due_date
-            }
-        )
-    return make_response(jsonify(response), 200) 
+    if is_sort:
+        history_query = sort_helper(Video, history_query, is_sort)
+    else:
+        # Sort by id in ascending order by default
+        history_query = history_query.order_by(Video.id.asc())
+    
+    history_response = pagination_helper(
+        page_num_query, count_query, history_query, get_video_rental_history_helper)
+
+    return make_response(jsonify(history_response), 200) 
