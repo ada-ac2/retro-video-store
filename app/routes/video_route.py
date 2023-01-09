@@ -10,10 +10,19 @@ videos_bp = Blueprint("videos_bp",__name__, url_prefix="/videos")
 #GET /videos
 @videos_bp.route("", methods=["GET"])
 def get_videos():
-    videos = Video.query.all()
+    sort_query = request.args.get("sort")
+    if sort_query == "title":
+        video_query = Video.query.order_by(Video.name)
+    elif sort_query == "release_date":
+        video_query = Video.query.order_by(Video.release_date)
+    
+    else:
+        video_query = Video.query.order_by(Video.id)
+
+
     response_body = []
 
-    for video in videos:
+    for video in video_query:
         response_body.append(video.to_dict())
     return jsonify(response_body)
 
