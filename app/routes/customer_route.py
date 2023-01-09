@@ -24,6 +24,7 @@ def validate_model(cls, model_id):
 #GET /customers
 @customers_bp.route("", methods=["GET"])
 def get_customers():
+    
     customer_query = Customer.query.all()
     response_body = []
 

@@ -15,7 +15,7 @@ rentals_bp = Blueprint("rentals_bp",__name__, url_prefix="/rentals")
 @rentals_bp.route("/check-out", methods=["POST"])
 def create_rental():
     request_body = request.get_json()
-
+    new_rental = Rental.from_dict(request_body)
     customer = validate_model(Customer, request_body["customer_id"])
     video = validate_model(Video, request_body["video_id"])
         
@@ -28,7 +28,7 @@ def create_rental():
     if available_inventory == 0:
         abort(make_response({"message":f"Could not perform checkout"}, 400))
         
-    new_rental = Rental.from_dict(request_body)
+    # new_rental = Rental.from_dict(request_body)
         
     customer.videos_checked_out_count += 1
     db.session.add(new_rental)
@@ -66,7 +66,7 @@ def check_in_rental():
     customer.videos_checked_out_count -= 1
     available_inventory += 1
     rental.check_out_status = False   
-    
+
     rental = Rental.from_dict(request_body)
         
     db.session.add(rental)

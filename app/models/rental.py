@@ -17,7 +17,7 @@ class Rental(db.Model):
         rental_dict["customer_id"] = self.customer_id
         rental_dict["video_id"] = self.video_id
         rental_dict["due_date"] = self.due_date
-        #rental_dict["check_out_status"] = self.check_out_status
+        
         return rental_dict
 
     @classmethod
