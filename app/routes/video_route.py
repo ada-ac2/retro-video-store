@@ -1,8 +1,10 @@
 from app import db
 from app.models.video import Video
 from app.models.rental import Rental
+from app.models.customer import Customer
 from flask import Blueprint, jsonify, abort, make_response, request 
 from app.routes.customer_route import validate_model
+from app.routes.customer_route import validate_num_queries
 videos_bp = Blueprint("videos_bp",__name__, url_prefix="/videos")
 
 #============================== videos_bp.route =============================
@@ -79,9 +81,39 @@ def put_videos_by_id(id):
 @videos_bp.route("/<id>/rentals", methods=["GET"])
 def get_rentals_by_video_id(id):
     video = validate_model(Video, id)
-    response_body = []
-    for rental in video.rentals:
-        response_body.append({"name":rental.customer.name})
+    customer_query = Rental.query.filter_by(video_id=video.id).join(Customer)
+    sort_query = request.args.get("sort")
+    if sort_query == "name":
+        customer_query = customer_query.order_by(Customer.name)
+    elif sort_query == "postal_code":
+        customer_query = customer_query.order_by(Customer.postal_code)
+    elif sort_query == "registered_at":
+        customer_query = customer_query.order_by(Customer.registered_at)
+    else:
+        customer_query = customer_query.order_by(Customer.id)
 
+    count_query = request.args.get("count")  
+    page_num_query = request.args.get("page_num")
+    if validate_num_queries(count_query) and validate_num_queries(page_num_query):
+        page = customer_query.paginate(page=int(page_num_query), per_page=int(count_query), error_out=False)
+        customer_result = []
+
+        for items in page.items:
+            customer_result.append(items.customer.to_dict())
+        return jsonify(customer_result), 200
+
+
+    if validate_num_queries(count_query) and not validate_num_queries(page_num_query):
+        page = customer_query.paginate(per_page=int(count_query), error_out=False)
+        customer_query = customer_query.all()
+        customer_result = []
+
+        for items in page.items:
+            customer_result.append(items.customer.to_dict())
+        return jsonify(customer_result), 200   
     
-    return jsonify(response_body)
+    customer_result = []
+    customer_query = customer_query.all()
+    for customer in customer_query:
+        customer_result.append(customer.customer.to_dict())
+    return jsonify(customer_result), 200
