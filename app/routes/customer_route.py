@@ -24,8 +24,15 @@ def validate_model(cls, model_id):
 #GET /customers
 @customers_bp.route("", methods=["GET"])
 def get_customers():
-    
-    customer_query = Customer.query.all()
+    sort_query = request.args.get("sort")
+    if sort_query == "name":
+        customer_query = Customer.query.order_by(Customer.name)
+    elif sort_query == "registered_at":
+        customer_query = Customer.query.order_by(Customer.registered_at)
+    elif sort_query == "postal_code":
+        customer_query = Customer.query.order_by(Customer.postal_code)
+    else:
+        customer_query = Customer.query.order_by(Customer.id)
     response_body = []
 
     for customer in customer_query:
