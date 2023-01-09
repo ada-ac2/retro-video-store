@@ -5,11 +5,11 @@ from sqlalchemy import func
 from datetime import timedelta
 from .video import Video
 from .customer import Customer
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 class Rental(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    due_date = db.Column(db.DateTime, nullable=True)
+    due_date = db.Column(db.Date, nullable=True)
     #is_checked_out = db.Column(db.Boolean, default=True)
     video_id = db.Column(db.Integer, db.ForeignKey('video.id'), nullable=False)
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)

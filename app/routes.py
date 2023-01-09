@@ -228,7 +228,8 @@ def delete_video_by_id(video_id):
 #--------------------------- Rentals Route Functions -----------------------------------------
 @rentals_bp.route("/check-out", methods=["POST"])
 def checkout_video():
-    
+    rental_query = Rental.query
+
     request_body = request.get_json()
     validate_rental_request_body(request_body)
 
@@ -247,7 +248,7 @@ def checkout_video():
         video_id=request_body["video_id"],
         due_date= return_date
     )
-
+    
 
     db.session.add(rental)
     db.session.commit()
