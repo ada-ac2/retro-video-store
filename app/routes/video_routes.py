@@ -109,6 +109,7 @@ def get_rentals_by_video_id(video_id):
         response_body.append({
             "due_date": row.Rental.due_date,
             "name": row.Rental.customer.name,
+            "id":row.Rental.customer.id,
             "phone": row.Rental.customer.phone,
             "postal_code": row.Rental.customer.postal_code,
         })
