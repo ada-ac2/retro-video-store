@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 
 db = SQLAlchemy()
-migrate = Migrate()
+migrate = Migrate(compare_type=True)
 load_dotenv()
 
 def create_app(test_config=None):
@@ -32,5 +32,10 @@ def create_app(test_config=None):
     migrate.init_app(app, db)
 
     #Register Blueprints Here
+    from .routes import customers_bp, videos_bp, rental_bp
+    app.register_blueprint(customers_bp)
+    app.register_blueprint(videos_bp)
+    app.register_blueprint(rental_bp)
 
+    
     return app
