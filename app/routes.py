@@ -23,15 +23,41 @@ def validate_model(cls, model_id):
         abort(make_response({"message":f"{cls.__name__} {model_id} was not found"}, 404))    
     return model 
 
-#Sort fuction
-# def sort_helper(sort_query, atr = None): 
-#     if sort_query == customer_query && atr == "id": 
-#         sort_query = sort_query.order_by(Customer.id.asc())
-#     elif atr != None:
-#         #Sort in ascending order by default 
-#         sort_query = sort_query.order_by(sort_query.atr.asc())
+#----------------Sort fuction-------------------------------------------------------------------------
+def sort_helper(cls, sort_query, atr = None): 
 
-#     return sort_query
+    if atr == "name":
+        sort_query = sort_query.order_by(cls.name.asc())
+    elif atr == "registered_at":
+        sort_query = sort_query.order_by(cls.registered_at.asc())
+    elif atr == "postal_code":
+        sort_query = sort_query.order_by(cls.postal_code.asc())
+    elif atr == "title":
+        sort_query = sort_query.order_by(cls.title.asc())
+    elif atr == "release_date":
+        sort_query = sort_query.order_by(cls.release_date.asc())
+    else: # If user don't specify any attribute, we would sort by id 
+        sort_query = sort_query.order_by(cls.id.asc())
+    
+    return sort_query
+
+#----------------Pagination fuction-------------------------------------------------------------------------
+def pageination_helper(cls, query, count, page_num):
+    try:
+        count = int(count)
+        if page_num is None:
+            page_num = 1
+        else:
+            try:
+                page_num = int(page_num)
+            except (ValueError):
+                page_num =1
+
+        query_page = query.paginate(page=page_num, per_page=count)
+    except (TypeError,ValueError):
+        query_page = query.paginate(page=1, per_page=sys.maxsize)
+
+    return query_page
 
 def validate_request_body(request_body): 
     if "name" not in request_body or "phone" not in request_body or "postal_code" not in request_body:
@@ -80,32 +106,10 @@ def read_all_customers():
     is_sort = request.args.get("sort")
     if is_sort:
         attribute = is_sort 
-
-        if attribute == "name":
-            customer_query = customer_query.order_by(Customer.name.asc())
-        elif attribute == "registered_at":
-            customer_query = customer_query.order_by(Customer.registered_at.asc())
-        elif attribute == "postal_code":
-            customer_query = customer_query.order_by(Customer.postal_code.asc())
-        else: # If user don't specify any attribute, we would sort by id 
-            customer_query = customer_query.order_by(Customer.id.asc())
+        customer_query = sort_helper(Customer,customer_query,attribute)
 
     # validating count and page_num
-    try:
-        count = int(count)
-        if page_num is None:
-            page_num = 1
-        else:
-            try:
-                page_num = int(page_num)
-            except (ValueError):
-                page_num =1
-
-        customer_page = customer_query.paginate(page=page_num, per_page=count)
-    except (TypeError,ValueError):
-        customer_page = customer_query.paginate(page=1, per_page=sys.maxsize)
-
-    customers = customer_page.items
+    customers = pageination_helper(Customer,customer_query,count,page_num).items
         
     customers_response = [] 
     
@@ -173,14 +177,8 @@ def read_all_videos():
 
     is_sort = request.args.get("sort")
     if is_sort:
-        attribute = is_sort 
-
-        if attribute == "title":
-            video_query = video_query.order_by(Video.title.asc())
-        elif attribute == "release_date":
-            video_query = video_query.order_by(Video.release_date.asc())
-        else: # If user don't specify any attribute, we would sort by id 
-            video_query = video_query.order_by(Video.id.asc())
+        attribute = is_sort
+        video_query = sort_helper(Video,video_query,attribute)
 
     videos = video_query.all()
         
@@ -328,36 +326,17 @@ def read_customer_rentals(customer_id):
         return {"message": "Customer 1 was not found"}, 404
 
     video_query = Video.query
-
+    is_sort = request.args.get("sort")
     count = request.args.get("count")
     page_num = request.args.get("page_num")
 
     #sorting customers
-    is_sort = request.args.get("sort")
-
     if is_sort:
-        if is_sort == "title":
-            video_query = video_query.order_by(Video.title)
-        elif is_sort == "release_date":
-            video_query = video_query.order_by(Video.release_date)
-        else:
-            video_query = video_query.order_by(Video.id)
-    
-    # validating count and page_num
-    try:
-        count = int(count)
-        if page_num is None:
-            page_num = 1
-        else:
-            try:
-                page_num = int(page_num)
-            except (ValueError):
-                page_num =1
-        video_query = video_query.paginate(page=page_num, per_page=count)
-    except (TypeError,ValueError):
-        video_query = video_query.paginate(page=1, per_page=sys.maxsize)
+        attribute = is_sort
+        video_query = sort_helper(Video,video_query,attribute)
 
-    video_rentals = video_query.items
+    # validating count and page_num
+    video_rentals = pageination_helper(Video,video_query,count,page_num).items
 
     customer_rentals_response = []
 
@@ -390,38 +369,17 @@ def read_video_rentals(video_id):
         return {"message": "Video 1 was not found"}, 404
 
     customer_query = Customer.query
-
+    is_sort = request.args.get("sort")
     count = request.args.get("count")
     page_num = request.args.get("page_num")
 
     #sorting customers
-    is_sort = request.args.get("sort")
-
     if is_sort:
-        if is_sort == "name":
-            customer_query = customer_query.order_by(Customer.name)
-        elif is_sort == "registered_at":
-            customer_query = customer_query.order_by(Customer.registered_at)
-        elif is_sort == "postal_code":
-            customer_query = customer_query.order_by(Customer.postal_code)
-        else:
-            customer_query = customer_query.order_by(Customer.id)
-    
-    # validating count and page_num
-    try:
-        count = int(count)
-        if page_num is None:
-            page_num = 1
-        else:
-            try:
-                page_num = int(page_num)
-            except (ValueError):
-                page_num =1
-        customer_query = customer_query.paginate(page=page_num, per_page=count)
-    except (TypeError,ValueError):
-        customer_query = customer_query.paginate(page=1, per_page=sys.maxsize)
+        attribute = is_sort
+        customer_query = sort_helper(Customer,customer_query,attribute)
 
-    customer_rentals = customer_query.items
+    # validating count and page_num
+    customer_rentals = pageination_helper(Customer,customer_query,count,page_num).items
 
     video_rentals_response = []
 
