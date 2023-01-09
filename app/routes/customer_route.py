@@ -1,5 +1,7 @@
 from app import db
 from app.models.customer import Customer
+from app.models.video import Video
+from app.models.rental import Rental
 from flask import Blueprint, jsonify, abort, make_response, request 
 from datetime import datetime
 
@@ -19,6 +21,13 @@ def validate_model(cls, model_id):
     
     return model
 
+def validate_num_queries(query_param):
+    try:
+        query_int = int(query_param)
+    except:
+        return False
+    return True
+
 #============================== customers_bp.route =============================
 #============================================================================
 #GET /customers
@@ -33,6 +42,27 @@ def get_customers():
         customer_query = Customer.query.order_by(Customer.postal_code)
     else:
         customer_query = Customer.query.order_by(Customer.id)
+    
+    count_query = request.args.get("count")
+    page_num_query = request.args.get("page_num")
+    if validate_num_queries(count_query) and validate_num_queries(page_num_query):
+        page = customer_query.paginate(page=int(page_num_query), per_page=int(count_query), error_out=False)
+        customers_response = []
+
+        for items in page.items:
+            customers_response.append(items.to_dict())
+        return jsonify(customers_response), 200
+    
+    if validate_num_queries(count_query) and not validate_num_queries(page_num_query):
+        page = customer_query.paginate(per_page=int(count_query), error_out=False)
+        customers = customer_query.all()
+        customers_response = []
+
+        for items in page.items:
+            customers_response.append(items.to_dict())
+        return jsonify(customers_response), 200
+
+    
     response_body = []
 
     for customer in customer_query:
@@ -93,9 +123,37 @@ def delete_customers_by_id(id):
 @customers_bp.route("/<id>/rentals", methods=["GET"])
 def get_rentals_by_customer_id(id):
     customer = validate_model(Customer, id)
+    
+    video_query = Rental.query.filter_by(customer_id=customer.id).join(Video)
+    sort_query = request.args.get("sort")
+    if sort_query == "title":
+        rental_query = video_query.order_by(Video.title)
+    else:
+        rental_query = video_query.order_by(Video.id)
+    count_query = request.args.get("count")
+    page_num_query = request.args.get("page_num")
+
+    if validate_num_queries(count_query) and validate_num_queries(page_num_query):
+
+        page = video_query.paginate(page=int(page_num_query), per_page=int(count_query), error_out=False)
+        video_result = []
+
+        for items in page.items:
+            video_result.append(items.video.to_dict())
+        return jsonify(video_result), 200
+    if validate_num_queries(count_query) and not validate_num_queries(page_num_query):
+        page = video_query.paginate(per_page=int(count_query), error_out=False)
+        video_result = []
+
+        for items in page.items:
+            video_result.append(items.video.to_dict())
+        return jsonify(video_result), 200
+        
     response_body = []
-    for rental in customer.rentals:
-        response_body.append({"title":rental.video.title})
+    for rental in rental_query:
+        response_body.append({"title":rental.video.title,
+                              "id":rental.video.id,
+                              "total_inventory":rental.video.total_inventory})
 
     
     return jsonify(response_body)
