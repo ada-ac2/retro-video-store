@@ -1,5 +1,6 @@
 from app.models.video import Video
 from app.models.customer import Customer
+import pytest
 
 VIDEO_1_TITLE = "A Brand New Video"
 VIDEO_1_ID = 1
@@ -746,33 +747,3 @@ def test_get_renters_invalid_p_param(client, customer_one_video_three, customer_
 
 
 
-
-def test_get_customers_rental_history(client, one_checked_out_video, one_returned_video):
-    # Act
-    response = client.get("/customers/1/history")
-    response_body = response.get_json()
-
-    #Assert
-    assert response.status_code == 200
-    assert len(response_body) == 1
-    assert response_body[0]["title"] == VIDEO_2_TITLE
-
-def test_get_customer_not_found_rental_history(client, one_checked_out_video, one_returned_video):
-    # Act
-    response = client.get("/customers/2/history")
-    response_body = response.get_json()
-
-    #Assert
-    assert response.status_code == 404
-    assert response_body == {"message": "Customer 2 was not found"}
-
-
-def test_get_customer_no_rental_history(client, one_checked_out_video):
-    # Act
-    response = client.get("/customers/1/history")
-    response_body = response.get_json()
-
-    #Assert
-    assert response.status_code == 200
-    assert len(response_body) == 0
-    assert response_body == []

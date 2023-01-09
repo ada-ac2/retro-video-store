@@ -4,76 +4,7 @@ from app.models.video import Video
 from app.models.rental import Rental
 from app.routes.rental_routes import query_rentals
 from flask import Blueprint, jsonify, abort, make_response, request
-
-def custom_query(cls, approvedsortinig, filters={}):
-    #list of accepted sort paramas
-    valid_sort=(approvedsortinig)
-    custom_querys=None
-
-    #getting sort and pagnation args, with defults and types
-    sort=request.args.get('sort', 'id')
-    page = None
-    count=None
-    if request.args.get("page"):
-        page=request.args.get("page", 1, type=int)
-    elif request.args.get('page_num'):
-        page=request.args.get('page_num', 1, type=int)
-    else: page=1
-    if request.args.get("count"):
-        count=request.args.get("count", 100, type=int)
-    elif request.args.get('per_page'):
-        count=request.args.get('per_page', 100, type=int)
-    else: count=100
-
-    #making id if not valid.
-    if sort not in valid_sort: sort= 'id'
-    #checking to see if class is the orderby attricute
-    order_cls=cls
-
-    #are there filters?
-    if request.args.get('filter'):
-        filters.update(request.args.getlist('filter'))
-
-    if cls is Rental: 
-        join_id=None
-        join_class=None
-        if filters.get("customer_id"):
-            join_class=Video
-            join_id=join_class.__name__.lower() + "_id"
-        else:
-            join_class=Customer
-            join_id=join_class.__name__.lower() + "_id"
-        
-        if not hasattr(cls,sort):
-            find_att=[Customer,Video,Rental]
-            for object in find_att:
-                if hasattr(object,sort):
-                    order_cls=object
-                    break
-
-            
-        custom_querys=cls.query.filter_by(**filters).join(join_class).order_by(
-            getattr(order_cls,sort)).paginate(page=page,per_page=count,error_out=False)
-    else:
-        custom_querys=cls.query.order_by(getattr(
-            order_cls,sort)).paginate(page,count,False)
-    
-    query=custom_querys.items
-    return query
-
-
-def validate_model(cls, model_id):
-    try:
-        model_id = int(model_id)
-    except:
-        abort(make_response({"message":f"{cls.__name__} {model_id} invalid"}, 400))
-
-    model = cls.query.get(model_id)
-
-    if not model:
-        abort(make_response({"message":f"{cls.__name__} {model_id} was not found"}, 404))
-
-    return model
+from app.routes.helper_functions import validate_model, custom_query
 
 customers_bp = Blueprint("customers_bp", __name__, url_prefix="/customers")
 
@@ -148,4 +79,17 @@ def get_rentals_by_customer(customer_id):
         response.append(rental_info)
     return jsonify(response)
 
-    #@customers_bp
+@customers_bp.route("/<customer_id>/history", methods=["GET"])
+def get_video_had_been_checked_out(customer_id):
+    customer = validate_model(Customer, customer_id)
+    videos = custom_query(Rental,['id','title','release_date'],{"customer_id":customer.id, "status": Rental.RentalStatus.CHECKIN})
+    response = []
+    rental_info = {}
+    for rental in videos:
+        video = validate_model(Video, rental.video_id)
+        rental_info["title"] = video.title
+        rental_info["checkout_date"] = rental.checkout_date
+        rental_info["due_date"] = rental.due_date
+        response.append(rental_info)
+    return jsonify(response)
+
