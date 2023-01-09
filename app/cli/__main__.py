@@ -66,10 +66,5 @@ def update(
     result = {"status_code": response.status_code, "data": response.json()}
     print(dumps(result))
 
-
-
-
-
-
 if __name__ == "__main__":
     cli()

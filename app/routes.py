@@ -13,8 +13,6 @@ rental_bp = Blueprint("rental_bp", __name__, url_prefix="/rentals")
 # ----------------------------------------------------------------------------------------------------------
 # -------------------------------------------- Helper Functions --------------------------------------------
 # ----------------------------------------------------------------------------------------------------------
-
-
 def sort_helper(cls, query, is_sort):
     atrribute = None
     sort_method = is_sort
@@ -74,6 +72,21 @@ def sort_attribute_helper(cls, query, atr=None, sort_method="asc"):
 
     return query
 
+def pagination_helper(page_num_query, count_query, query, get_record_function):
+    if page_num_query and count_query and page_num_query.isnumeric() and count_query.isnumeric():
+        query = query.paginate(
+            page=int(page_num_query), per_page=int(count_query))
+        response = get_record_function(
+            query.items)
+    elif count_query and count_query.isnumeric() and (not page_num_query or not page_num_query.isnumeric()):
+        query = query.paginate(page=1, per_page=int(count_query))
+        response = get_record_function(
+            query.items)
+    else:
+        query = query.all()
+        response = get_record_function(query)
+
+    return response
 
 def validate_model(cls, model_id):
     try:
@@ -124,23 +137,6 @@ def get_all_videos_rental_customers_helper(customer_list):
             }
         )
     return customer_response
-
-
-def pagination_helper(page_num_query, count_query, query, get_record_function):
-    if page_num_query and count_query and page_num_query.isnumeric() and count_query.isnumeric():
-        query = query.paginate(
-            page=int(page_num_query), per_page=int(count_query))
-        response = get_record_function(
-            query.items)
-    elif count_query and count_query.isnumeric() and (not page_num_query or not page_num_query.isnumeric()):
-        query = query.paginate(page=1, per_page=int(count_query))
-        response = get_record_function(
-            query.items)
-    else:
-        query = query.all()
-        response = get_record_function(query)
-
-    return response
 
 
 def get_all_overdue_helper(overdue_list):
