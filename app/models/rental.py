@@ -8,6 +8,8 @@ class Rental(db.Model):
     due_date = db.Column(db.Date, default = date.today() + timedelta(days=7))
     videos_checked_out_count = db.Column(db.Integer) 
     available_inventory = db.Column(db.Integer) 
+    checked_in = db.Column(db.Boolean, default = False)
+    checkout_date = db.Column(db.Date, default = date.today())
 
     def to_dict(self):
         return {
@@ -15,5 +17,6 @@ class Rental(db.Model):
             "video_id" : self.video_id,
             "due_date" : self.due_date, 
             "videos_checked_out_count" : self.videos_checked_out_count,
-            "available_inventory" : self.available_inventory
+            "available_inventory" : self.available_inventory, 
+            "checked_in" : self.checked_in 
         }
