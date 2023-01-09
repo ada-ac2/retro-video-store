@@ -158,3 +158,12 @@ def customer_three_video_three(app, client, third_customer, five_copies_video):
         "video_id": 1
     })
 
+@pytest.fixture
+def customer_with_overdue(app, client, one_customer, five_copies_video):
+    response = client.post("/rentals/check-out", json={
+        "customer_id": 1,
+        "video_id": 1,
+        "due_date" : "2023-01-01"
+    }) 
+
+    

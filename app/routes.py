@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, make_response, request, abort
 from app import db
+from datetime import date
 from app.models.customer import Customer
 from app.models.video import Video
 from app.models.rental import Rental
@@ -30,6 +31,7 @@ def sort_helper(cls, query, is_sort):
             attribute = split_query_param[0]
 
     return sort_attribute_helper(cls, query, attribute, sort_method)
+
 
 def sort_attribute_helper(cls, query, atr=None, sort_method="asc"):
     if atr:
@@ -72,6 +74,20 @@ def sort_attribute_helper(cls, query, atr=None, sort_method="asc"):
 
     return query
 
+
+def validate_model(cls, model_id):
+    try:
+        model_id = int(model_id)
+    except:
+        abort(make_response({"message": f"{model_id} invalid"}, 400))
+    model = cls.query.get(model_id)
+    if model:
+        return model
+
+    abort(make_response(
+        {"message": f"{cls.__name__} {model_id} was not found"}, 404))
+
+
 def get_all_customer_helper(customer_list):
     customers_response = []
     for customer in customer_list:
@@ -88,7 +104,8 @@ def get_all_videos_helpers(videos_list):
                 "id": video.Video.id,
                 "total_inventory": video.Video.total_inventory,
                 "title": video.Video.title,
-                "due_date": video.due_date
+                "due_date": video.due_date,
+                "checked_in" : video.checked_in
             })
     return video_response
 
@@ -102,12 +119,14 @@ def get_all_videos_rental_customers_helper(customer_list):
                 "name": customer.Customer.name,
                 "phone": customer.Customer.phone,
                 "postal_code": customer.Customer.postal_code,
-                "id" : customer.Customer.id
+                "id": customer.Customer.id,
+                "checked_in" : customer.checked_in
             }
         )
     return customer_response
 
-def pagination_helper(page_num_query, count_query, query, get_record_function): 
+
+def pagination_helper(page_num_query, count_query, query, get_record_function):
     if page_num_query and count_query and page_num_query.isnumeric() and count_query.isnumeric():
         query = query.paginate(
             page=int(page_num_query), per_page=int(count_query))
@@ -121,26 +140,29 @@ def pagination_helper(page_num_query, count_query, query, get_record_function):
         query = query.all()
         customer_response = get_record_function(query)
 
-    return customer_response 
+    return customer_response
 
 
-def validate_model(cls, model_id):
-    try:
-        model_id = int(model_id)
-    except:
-        abort(make_response({"message": f"{model_id} invalid"}, 400))
-    model = cls.query.get(model_id)
-    if model:
-        return model
+def get_all_overdue_helper(overdue_list):
+    overdue_response = []
+    for overdue in overdue_list:
+        overdue_response.append(
+            {
+                "video_id": overdue.id,
+                "title": overdue.title,
+                "postal_code": overdue.postal_code,
+                "checkout_date": overdue.checkout_date,
+                "due_date": overdue.due_date
+            }
+        )
 
-    abort(make_response(
-        {"message": f"{cls.__name__} {model_id} was not found"}, 404))
-
-
+    return overdue_response
 
 # ----------------------------------------------------------------------------------------------------------
 # -------------------------------------------- Routes ------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------
+
+
 @customers_bp.route("", methods=["GET"])
 def get_all_customers():
     customer_query = Customer.query
@@ -317,6 +339,10 @@ def checkout_one_video():
             # Decrement current available_inventory
             available_inventory=available_to_rent - 1
         )
+
+        if request_body.get("due_date"): 
+            new_rental.due_date = request_body["due_date"] 
+
     except KeyError as keyerror:
         abort(make_response(
             {"details": f"Request body must include {keyerror.args[0]}."}, 400))
@@ -340,14 +366,18 @@ def check_in_one_video():
         # Increment inventory when video is returned
         available_inventory = video.total_inventory - \
             Rental.query.filter_by(video_id=video.id).count() + 1
-        # find the rental record that needs to be deleted
-        to_delete_rental = Rental.query.filter_by(
-            video_id=video.id, customer_id=customer.id).first()
 
-        if to_delete_rental:
-            db.session.delete(to_delete_rental)
-            db.session.commit()
-        else:
+        try:
+            return_rental = Rental.query.filter(
+                Rental.customer_id == customer.id, Rental.video_id == video.id).order_by(Rental.due_date.asc()).first()
+            if return_rental.checked_in != True: 
+                return_rental.checked_in = True
+                db.session.commit()
+                db.session.flush()
+            else: 
+                abort(make_response(
+                {"message": f"No outstanding rentals for customer {customer.id} and video {video.id}"}, 400))
+        except:
             abort(make_response(
                 {"message": f"No outstanding rentals for customer {customer.id} and video {video.id}"}, 400))
 
@@ -372,7 +402,7 @@ def videos_customer_checked_out(id):
     count_query = request.args.get("count")
     page_num_query = request.args.get("page_num")
 
-    join_query = db.session.query(Video, Rental.due_date).join(
+    join_query = db.session.query(Video, Rental.due_date, Rental.checked_in).join(
         Rental).filter(Rental.customer_id == customer.id)
 
     if is_sort:
@@ -381,7 +411,8 @@ def videos_customer_checked_out(id):
         # Sort by id in ascending order by default
         join_query = join_query.order_by(Video.id.asc())
 
-    videos_response = pagination_helper(page_num_query, count_query, join_query, get_all_videos_helpers)
+    videos_response = pagination_helper(
+        page_num_query, count_query, join_query, get_all_videos_helpers)
 
     return make_response(jsonify(videos_response), 200)
 
@@ -395,7 +426,7 @@ def customers_have_the_video_checked_out(id):
     count_query = request.args.get("count")
     page_num_query = request.args.get("page_num")
 
-    join_query = db.session.query(Customer, Rental.due_date).join(
+    join_query = db.session.query(Customer, Rental.due_date, Rental.checked_in).join(
         Rental).filter(Rental.video_id == video.id)
     if is_sort:
         join_query = sort_helper(Customer, join_query, is_sort)
@@ -403,6 +434,21 @@ def customers_have_the_video_checked_out(id):
         # Sort by id in ascending order by default
         join_query = join_query.order_by(Customer.id.asc())
 
-    customer_response = pagination_helper(page_num_query, count_query, join_query, get_all_videos_rental_customers_helper)
-    
+    customer_response = pagination_helper(
+        page_num_query, count_query, join_query, get_all_videos_rental_customers_helper)
+
     return make_response(jsonify(customer_response), 200)
+
+
+# --------------------------------
+# -------- Rental History --------
+# --------------------------------
+@rental_bp.route("/overdue", methods=["GET"])
+def all_customers_with_overdue_videos():
+    join_query = db.session.query(Rental.checkout_date, Rental.due_date, Customer.name, Customer.postal_code, Customer.id, Video.id, Video.title).filter(
+        date.today() > Rental.due_date, Rental.checked_in == False, Rental.customer_id == Customer.id, Rental.video_id == Video.id)
+    query_response = join_query.all()
+    print(query_response)
+
+    result_response = get_all_overdue_helper(query_response)
+    return make_response(jsonify(result_response), 200)
