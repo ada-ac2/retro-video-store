@@ -443,6 +443,7 @@ def customers_have_the_video_checked_out(id):
 # --------------------------------
 # -------- Rental History --------
 # --------------------------------
+
 @rental_bp.route("/overdue", methods=["GET"])
 def all_customers_with_overdue_videos():
     join_query = db.session.query(Rental.checkout_date, Rental.due_date, Customer.name, Customer.postal_code, Customer.id, Video.id, Video.title).filter(
