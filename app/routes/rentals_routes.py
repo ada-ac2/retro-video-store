@@ -1,10 +1,9 @@
 from app import db
-from flask import Blueprint, jsonify, make_response, abort, request
+from flask import Blueprint, jsonify, make_response, request
 from ..models.rental import Rental
 from ..models.customer import Customer
 from ..models.video import Video
-from ..routes.customer_routes import validate_model
-from ..routes.customer_routes import validate_request
+from app.models.validation import validate_model, validate_request
 
 # ~~~~~~ initialize rentals blueprint ~~~~~~
 rentals_bp = Blueprint("rentals", __name__, url_prefix="/rentals")

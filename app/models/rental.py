@@ -1,5 +1,7 @@
 from app import db
 import datetime as dt
+from .video import Video
+from .customer import Customer
 
 class Rental(db.Model):
     __tablename__ = "rentals"
@@ -14,11 +16,12 @@ class Rental(db.Model):
 
     def to_dict(self):
         """
-        Returns dictionary of rental data and customer data if customer
+        Returns dictionary of rental data and *customer/video data if exists
         """
         rental_dict = {
-                "due_date": self.due_date,
-                "n_video_copies": self.n_video_copies,
+            "id": self.id,
+            "due_date": self.due_date,
+            "n_video_copies": self.n_video_copies,
         }
         if self.customer:
             customer_dict = self.customer.to_dict()
@@ -38,31 +41,9 @@ class Rental(db.Model):
         )
         return new_rental
 
-    # def check_out_video(self, n):
-    #     """
-    #     Updates video available inventory when customer checks out video(s)
-    #     """
-    #     # decrement the video inventory
-    #     self.video.calculate_available_inventory()
-    #     # increment the customer's number of rented videos
-    #     self.customer.check_out_videos(n)
-
-    # def check_in_video(self):
-    #     """
-    #     Updates video available inventory when customer checks out video(s)
-    #     """
-    #     # decrement the video inventory
-    #     self.video.calculate_available_inventory()
-    #     # increment the customer's number of rented videos
-    #     self.customer.check_out_videos()
-
-    # def check_in_video(self, n):
-    #     """
-    #     Updates videos checked out count and video available inventory
-    #     :params:
-    #     - n: number of videos to check in
-    #     """
-    #     self.num_duplicates_video -= n
-    #     self.video.calculate_available_inventory()
-
-    
+    @classmethod
+    def get_all_attrs(cls):
+        """
+        Returns list of attributes for Rental class
+        """
+        return ["name", "postal_code", "registered_at", "title", "release_date"]

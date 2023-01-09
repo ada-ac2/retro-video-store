@@ -1,8 +1,8 @@
-"""Initialized all attributes for Rental, Customer and Video
+"""Reinitialized migrations to debug error in finding customer.rentals in db
 
-Revision ID: 8b1b64498a3f
+Revision ID: 1ad1bc43f5f1
 Revises: 
-Create Date: 2023-01-06 19:32:08.988351
+Create Date: 2023-01-08 15:42:05.330387
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '8b1b64498a3f'
+revision = '1ad1bc43f5f1'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -32,6 +32,7 @@ def upgrade():
     sa.Column('title', sa.String(), nullable=True),
     sa.Column('release_date', sa.Date(), nullable=True),
     sa.Column('total_inventory', sa.Integer(), nullable=True),
+    sa.Column('available_inventory', sa.Integer(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('rentals',
@@ -39,6 +40,7 @@ def upgrade():
     sa.Column('customer_id', sa.Integer(), nullable=True),
     sa.Column('video_id', sa.Integer(), nullable=True),
     sa.Column('due_date', sa.DateTime(), nullable=True),
+    sa.Column('status', sa.String(), nullable=True),
     sa.Column('n_video_copies', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['customer_id'], ['customer.id'], ),
     sa.ForeignKeyConstraint(['video_id'], ['video.id'], ),

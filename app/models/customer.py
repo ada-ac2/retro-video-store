@@ -29,22 +29,9 @@ class Customer(db.Model):
         
     def check_in_videos(self, n):
         self.n_rented_videos -= n
-
-    # def update_attr(self, attr, val):
-    #     """
-    #     Updates an attr given a *modifiable attr and value. 
-    #     * modifiable attrs: name, postal_code, phone
-    #     """
-    #     if attr == "name" and val.isalpha():
-    #         self.name = val
-    #     elif attr == "postal_code" and not val.isalpha():
-    #         self.postal_code = val
-    #     elif attr == "phone" and not val.isalpha():
-    #         self.phone = val
-        
-    #     return False
     
-    def create_from_dict(dict):
+    @classmethod
+    def create_from_dict(cls, dict):
         """
         Creates customer instance from dict values.
         """
@@ -53,3 +40,10 @@ class Customer(db.Model):
             postal_code=dict["postal_code"],
             phone=dict["phone"]
         )
+
+    @classmethod
+    def get_all_attrs(cls):
+        """
+        Returns list of attributes for Customer class
+        """
+        return ["name", "postal_code", "phone", "registered_at"]

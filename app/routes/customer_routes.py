@@ -1,59 +1,32 @@
 from app import db
-from flask import Blueprint, jsonify, make_response, abort, request
+from flask import Blueprint, jsonify, make_response, request
 from ..models.customer import Customer
-
-
-# ~~~~~~ validation checkers ~~~~~~
-def validate_model(cls, model_id):
-    """
-    Checks if model id is correct dtype (int) and if exists in db.
-    :params:
-    - model_id
-    :returns:
-    - response_msg (dict), status_code (int)
-    """
-    # check if model id is integer dtype
-    try:
-        model_id = int(model_id)
-    except:
-        abort(make_response({"message": f"{model_id} should be an integer dtype"}, 400))
-    # fetch model by id
-    model = cls.query.get(model_id)
-    if not model:
-        return abort(make_response({"message": f"{cls.__name__} {model_id} was not found"}, 404))
-    else:
-        return model
-
-def validate_request(request, reqs):
-    """
-    Validates that http requests satisfy all requirements for PUT methods
-    :params:
-    - request (from client)
-    :returns:
-    - request_body (if requirements met)
-    """
-    
-    # collect request
-    request_body = request.get_json()
-    # check if all requirements in request
-    set_request_keys = set(request_body.keys())
-    set_reqs= set(reqs)
-    if not set_request_keys == set_reqs:
-        missing_key = "".join(set_reqs-set_request_keys)
-        return abort(make_response({
-                "details": f"Request body must include {missing_key}."
-        }, 400))
-    return request_body
+from ..models.video import Video
+from ..models.rental import Rental
+from app.models.validation import validate_model, validate_request, validate_and_process_query_params, create_model_query
 
 # ~~~~~~ initialize customers blueprint ~~~~~~
 customers_bp = Blueprint("customers", __name__, url_prefix="/customers")
 
 # ~~~~~~ customers endpoints ~~~~~~
 @customers_bp.route("", methods=["GET"])
-def display_all_customers():
-    # query all customers
-    customers = Customer.query.all()
-    # initialize response list
+def display_all_customers():    
+    request_query = request.args.to_dict()
+    # collect & process query params from http request
+    sort, count, page_num = validate_and_process_query_params(Customer, request_query)
+    # collect customers
+    customer_query = Customer.query
+    # default is sorted by ascending customer id
+    customers = customer_query.order_by(Customer.id.asc())
+    # check for additional query params
+    if sort:
+        # sort asc by given attribute e.g. sort=name
+        clause = getattr(Customer, sort["sort"])
+        customers = customer_query.order_by(clause.asc())
+    if count:
+        # limit selection of customers to view
+        customers = customer_query.limit(count["count"])
+    # fill http response list
     response = []
     for customer in customers:
         response.append(customer.to_dict())
@@ -99,11 +72,18 @@ def delete_a_customer(customer_id):
 @customers_bp.route("/<customer_id>/rentals", methods=["GET"])
 def display_customer_rentals(customer_id):
     customer = validate_model(Customer, customer_id)
+    # collect & process query params from http request
+    request_query = request.args.to_dict()
+    sort, count, page_num = validate_and_process_query_params(Rental, request_query)
+    # collect rentals by customer id
+    rental_query = Rental.query.filter_by(customer_id = customer.id)
+    # default is sorted by asc rental id
+    rentals = rental_query.order_by(Rental.id.asc())
+    if count:
+        # limit selection of customers to view
+        rentals = rental_query.limit(count["count"])
+    # fill http response list
     rentals_response = []
-    for rental in customer.rentals:
-        rentals_response.append({
-            "release_date": rental.video.release_date,
-            "title": rental.video.title,
-            "due_date": rental.due_date
-        })
+    for rental in rentals:
+        rentals_response.append(rental.to_dict())
     return make_response(jsonify(rentals_response), 200)
