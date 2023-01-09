@@ -57,22 +57,28 @@ def validate_and_process_query_params(cls, queries):
     - page_num (dict): page
     """
     attrs = cls.get_all_attrs()
-    sort = {}
-    count = {}
-    page_num = {}
+    sort = None
+    count = None
+    page_num = None
     for kwarg in queries:
         # check for sort method query param
         if kwarg == "sort":
             # if sort string is not a model attribute
             if queries[kwarg] in attrs:
-                sort[kwarg] = queries[kwarg]
+                sort = queries[kwarg]
         # check for limit method query param
         if kwarg == "count":
             # add count to count kwarg dict
-            count[kwarg] = queries[kwarg]
+            try:
+                count = int(queries[kwarg])
+            except ValueError:
+                pass
         # check for page count method query param
         if kwarg == "page_num":
-            page_num[kwarg] = queries[kwarg]
+            try:
+                page_num = int(queries[kwarg])
+            except ValueError:
+                pass
     return sort, count, page_num
 
 def create_model_query(models_query, cls, sort, count, page_num):

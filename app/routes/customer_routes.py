@@ -19,17 +19,18 @@ def display_all_customers():
     # check for additional query params
     if sort:
         # sort asc by given attribute e.g. sort=name
-        clause = getattr(Customer, sort["sort"]) 
-        customers = customer_query.order_by(clause.asc())
+        clause = getattr(Customer, sort) 
+        customer_query = customer_query.order_by(clause.asc())
     else:
         # default is sorted by ascending customer id
-        customers = customer_query.order_by(Customer.id.asc())
+        customer_query = customer_query.order_by(Customer.id.asc())
     if count and not page_num:
         # limit selection of customers to view
-        customers = customer_query.limit(count["count"])
+        customer_query = customer_query.limit(count)
     if page_num:
-        customers = customer_query.paginate(page=int(page_num["page_num"]), per_page=int(count["count"])).items
+        customer_query = customer_query.paginate(page=int(page_num), per_page=int(count)).items
     # fill http response list
+    customers = customer_query.all()
     response = []
     for customer in customers:
         response.append(customer.to_dict())
@@ -84,14 +85,14 @@ def display_customer_rentals(customer_id):
         .filter(Rental.customer_id == customer_id)
     )
     if sort:
-        join_query = join_query.order_by(sort["sort"])
+        join_query = join_query.order_by(sort)
     else:
         # default sort is ascending rental id
         join_query = join_query.order_by(Rental.id.asc())
     if count and not page_num:
-        join_query = join_query.limit(count["count"])
+        join_query = join_query.limit(count)
     if page_num:
-        join_query = join_query.paginate(page=int(page_num["page_num"]), per_page=int(count["count"])).items
+        join_query = join_query.paginate(page=int(page_num), per_page=int(count)).items
 
     response_body = []
     for row in join_query:

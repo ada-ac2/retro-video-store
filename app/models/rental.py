@@ -22,6 +22,7 @@ class Rental(db.Model):
             "id": self.id,
             "due_date": self.due_date,
             "n_video_copies": self.n_video_copies,
+            "status": self.status
         }
         if self.customer:
             customer_dict = self.customer.to_dict()
