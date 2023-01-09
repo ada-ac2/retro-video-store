@@ -94,6 +94,28 @@ def test_delete_customer_one_successful(app_requests_session):
     result_test = json.loads(output_test.stdout)
     assert len(result_test["data"]) == 0
 
+def test_customer_update_successful(app_requests_session):
+    #Arrange
+    create_one_customer()
+    new_name = "Cathy"
+    new_postal_code = "54321"
+    new_phone = "4251111111"
+
+    #Act
+    output = runner.invoke(cli, ["customer", "update", 
+        "--id", "1",
+        "--name", new_name, 
+        "--postal-code", new_postal_code,
+        "--phone", new_phone
+        ])
+    #Assert
+    assert output.exit_code == 0
+    result = json.loads(output.stdout)
+    assert result["status_code"] == 200
+    customer_data = result["data"]
+    assert customer_data["name"] == new_name
+    assert customer_data["postal_code"] == new_postal_code
+    
 
 
 

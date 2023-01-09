@@ -52,8 +52,20 @@ def delete(id:int):
     print(dumps(result))
 
 @customer_cli.command()
-def update(id:int):
-    response = requests_session.put(f"")
+def update(
+    id:int = typer.Option(...),
+    name: str = typer.Option(..., help="Full name of the customer"),
+    postal_code: str = typer.Option(..., help="Customer's postal code"),
+    phone: str = typer.Option(..., help="Customer's phone number"),
+    ):
+    response = requests_session.put(f"{SERVICE_URI}/customers/{id}", json={
+        "name": name,
+        "postal_code": postal_code,
+        "phone": phone,
+    })
+    result = {"status_code": response.status_code, "data": response.json()}
+    print(dumps(result))
+
 
 
 
