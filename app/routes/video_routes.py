@@ -88,7 +88,7 @@ def get_rentals_by_video_id(video_id):
     #rentals = create_model_query(video, Video, sort, count, page_num)
     rentals_response = []
     for rental in video.rentals:
-        rentals_response.append(rental.to_dict())
-        print(rental.to_dict())
+        if rental.status == "checked_out":
+            rentals_response.append(rental.to_dict())
     return make_response(jsonify(rentals_response), 200)
 

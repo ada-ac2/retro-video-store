@@ -85,5 +85,6 @@ def display_customer_rentals(customer_id):
     # fill http response list
     rentals_response = []
     for rental in rentals:
-        rentals_response.append(rental.to_dict())
+        if rental.status == "checked_out":
+            rentals_response.append(rental.to_dict())
     return make_response(jsonify(rentals_response), 200)
