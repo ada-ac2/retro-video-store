@@ -16,16 +16,16 @@ def get_all_videos():
     # check for additional query params
     if sort:
         # sort asc by given attribute e.g. sort=name
-        clause = getattr(Video, sort["sort"]) 
+        clause = getattr(Video, sort) 
         videos = video_query.order_by(clause.asc())
     else:
         # default is sorted by ascending customer id
         videos = video_query.order_by(Video.id.asc())
     if count and not page_num:
         # limit selection of customers to view
-        videos = video_query.limit(count["count"])
+        videos = video_query.limit(count)
     if page_num:
-        videos = video_query.paginate(page=int(page_num["page_num"]), per_page=int(count["count"])).items
+        videos = video_query.paginate(page=int(page_num), per_page=int(count)).items
 
     # fill http response list
     videos_response = []
@@ -95,14 +95,14 @@ def get_rentals_by_video_id(video_id):
     )
    
     if sort:
-        join_query = join_query.order_by(sort["sort"])
+        join_query = join_query.order_by(sort)
     else:
         # default sort is ascending rental id
         join_query = join_query.order_by(Rental.id.asc())
     if count and not page_num:
-        join_query = join_query.limit(count["count"])
+        join_query = join_query.limit(count)
     if page_num:
-        join_query = join_query.paginate(page=int(page_num["page_num"]), per_page=int(count["count"])).items
+        join_query = join_query.paginate(page=int(page_num), per_page=int(count)).items
 
     response_body = []
     for row in join_query:
