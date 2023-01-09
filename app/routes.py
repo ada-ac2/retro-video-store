@@ -324,7 +324,7 @@ def checkout_one_video():
 
         # avaliable inventory = total inventory - total checkedout
         available_to_rent = video.total_inventory - \
-            Rental.query.filter_by(video_id=video.id).count()
+            Rental.query.filter_by(video_id=video.id, checked_in = False).count()
         if available_to_rent < 1:
             abort(make_response(
                 {"message": "Could not perform checkout"}, 400))
@@ -365,18 +365,15 @@ def check_in_one_video():
         customer.videos_checked_out_count -= 1
         # Increment inventory when video is returned
         available_inventory = video.total_inventory - \
-            Rental.query.filter_by(video_id=video.id).count() + 1
+            Rental.query.filter_by(video_id=video.id, checked_in = False).count() + 1
 
         try:
-            return_rental = Rental.query.filter(
-                Rental.customer_id == customer.id, Rental.video_id == video.id).order_by(Rental.due_date.asc()).first()
-            if return_rental.checked_in != True: 
-                return_rental.checked_in = True
-                db.session.commit()
-                db.session.flush()
-            else: 
-                abort(make_response(
-                {"message": f"No outstanding rentals for customer {customer.id} and video {video.id}"}, 400))
+            return_rental = Rental.query.filter_by(
+                customer_id = customer.id, video_id = video.id, checked_in = False).order_by(Rental.due_date.asc()).first()
+            return_rental.checked_in = True
+            db.session.commit()
+            db.session.flush()
+            
         except:
             abort(make_response(
                 {"message": f"No outstanding rentals for customer {customer.id} and video {video.id}"}, 400))
