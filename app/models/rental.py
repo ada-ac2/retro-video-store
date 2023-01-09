@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 class Rental(db.Model):
     #__tablename__ = 'rental_table'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     due_date = db.Column(db.DateTime, default=datetime.now()+timedelta(days=7), nullable=False)
     status = db.Column(db.String, default="Checked out", nullable=False)
 
@@ -26,6 +26,8 @@ class Rental(db.Model):
     @classmethod
     def from_dict(cls, rental_data):
         new_video = Rental(
-            due_date=rental_data["due_date"])
+            customer_id=rental_data["customer_id"],
+            video_id=rental_data["video_id"]
+        )
         
         return new_video

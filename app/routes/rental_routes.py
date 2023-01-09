@@ -28,11 +28,7 @@ def create_rental_check_out():
     if verify_inventory:
         abort(make_response(jsonify(verify_inventory), 400))
 
-    new_rental = Rental(
-                        customer_id = customer.id,
-                        video_id = video.id,
-                        due_date = datetime.now() + timedelta(days=7)
-                        )
+    new_rental = Rental.from_dict(request_body)
     customer.videos_checked_out_count += 1
     video.available_inventory -= 1
 
@@ -67,14 +63,13 @@ def create_rental_check_in():
     if check_outstanding:
         abort(make_response(jsonify(check_outstanding), 400))
 
-    return_rental = Rental.query.filter_by(customer_id=1, video_id=1).order_by(Rental.due_date.asc()).first()
+    return_rental = Rental.query.filter_by(customer_id=customer_id, video_id=video_id, status="Checked out").order_by(Rental.due_date.asc()).first()
     return_rental.status = "Checked in"
     
     customer.videos_checked_in_count += 1
     customer.videos_checked_out_count -= 1
     video.available_inventory += 1
 
-    db.session.add(return_rental)
     db.session.commit()
     db.session.refresh(return_rental)
     db.session.refresh(video)

@@ -1,7 +1,7 @@
 from app import db
 
 class Customer(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement = True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable = False)
     registered_at = db.Column(db.DateTime(timezone = True))
     postal_code = db.Column(db.String, nullable = False)

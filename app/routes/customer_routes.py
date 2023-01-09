@@ -178,7 +178,7 @@ def get_customers_rental_history(customer_id):
     history = list()
     
     for rental in rentals_query:
-        if rental.customer_id == customer.id and rental.status == "Checked out" and customer.videos_checked_in_count > 0:
+        if rental.customer_id == customer.id and rental.status == "Checked in" and customer.videos_checked_in_count > 0:
             temp_dict = dict()
             video = validate_model(Video, rental.video_id)
             temp_dict["title"] = video.title
