@@ -1,8 +1,8 @@
-"""Reinitialized migrations to debug error in finding customer.rentals in db
+"""empty message
 
-Revision ID: 1ad1bc43f5f1
+Revision ID: aaec7f59811c
 Revises: 
-Create Date: 2023-01-08 15:42:05.330387
+Create Date: 2023-01-08 20:56:08.280510
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '1ad1bc43f5f1'
+revision = 'aaec7f59811c'
 down_revision = None
 branch_labels = None
 depends_on = None
