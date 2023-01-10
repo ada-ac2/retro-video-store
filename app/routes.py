@@ -321,6 +321,7 @@ def read_customer_rentals(customer_id):
     count = request.args.get("count")
     page_num = request.args.get("page_num")
 
+    #join_query = db.session.query(Video).join(Rental).filter(customer_id = customer.id)
     #sorting customers
     if is_sort:
         attribute = is_sort
@@ -336,9 +337,9 @@ def read_customer_rentals(customer_id):
         rental = Rental.query.filter_by(
             video_id=video.id,
             customer_id=customer.id
-        ).first()
+        ).all()
         
-        rental_due_date = rental.due_date
+        rental_due_date = rental[0].due_date
 
         customer_rentals_response.append({
             "release_date": video.release_date,
