@@ -11,13 +11,8 @@ customers_bp = Blueprint("customers_bp", __name__, url_prefix="/customers")
 def create_customer():
 
     customer_data = validate_request_body(Customer, request.get_json())
-    
-    new_customer = Customer(
-        name=customer_data["name"],
-        postal_code=customer_data["postal_code"],
-        phone=customer_data["phone"],
-        videos_checked_out_count = 0
-    )
+    customer_data["videos_checked_out_count"] = 0
+    new_customer = Customer.from_dict(customer_data)
 
     db.session.add(new_customer)
     db.session.commit()

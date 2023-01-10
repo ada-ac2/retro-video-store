@@ -13,10 +13,7 @@ def create_rental():
 
     customer = validate_model(Customer, request_body["customer_id"])
     video = validate_model(Video, request_body["video_id"])
-    new_rental = Rental(
-        customer_id=customer.id,
-        video_id=video.id,
-    )
+    new_rental = Rental.from_dict(request_body)
 
     db.session.add(new_rental)
     db.session.commit()
