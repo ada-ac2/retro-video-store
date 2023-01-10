@@ -32,5 +32,14 @@ def create_app(test_config=None):
     migrate.init_app(app, db)
 
     #Register Blueprints Here
+    from app.routes.customer_route import customers_bp
+    app.register_blueprint(customers_bp)
+
+    from app.routes.video_route import videos_bp
+    app.register_blueprint(videos_bp)
+
+    from app.routes.rental_route import rentals_bp
+    app.register_blueprint(rentals_bp)
+
 
     return app
