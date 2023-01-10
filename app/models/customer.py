@@ -11,7 +11,6 @@ class Customer(db.Model):
     rentals = db.relationship("Rental", back_populates="customer")
 
 
-
     def to_dict(self):
         customer_dict = {}
         customer_dict["id"] = self.id
