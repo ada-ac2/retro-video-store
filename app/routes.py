@@ -328,7 +328,10 @@ def read_customer_rentals(customer_id):
         video_query = sort_helper(Video,video_query,attribute)
 
     # validating count and page_num
-    video_rentals = pageination_helper(Video,video_query,count,page_num).items
+    if not count and not page_num:
+        video_rentals = video_query
+    else:
+        video_rentals = pageination_helper(Video,video_query,count,page_num).items
     
     customer_rentals_response = []
 
