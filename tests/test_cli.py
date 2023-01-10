@@ -1,8 +1,14 @@
 from typer.testing import CliRunner
-from app.cli import cli
+from app.cli import SERVICE_URI, cli, requests_session
+from wsgiadapter import WSGIAdapter
 import json
+import pytest
 
 runner = CliRunner()
+
+@pytest.fixture
+def app_requests_session(app):
+    requests_session.mount(SERVICE_URI, WSGIAdapter(app))
 
 def create_one_customer():
     name= "Jason"
