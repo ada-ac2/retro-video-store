@@ -2,12 +2,8 @@ import pytest
 from app import create_app
 from app.models.video import Video
 from app.models.customer import Customer
-from app.cli.__main__ import SERVICE_URI, requests_session
 from app import db
-from datetime import datetime
 from flask.signals import request_finished
-from wsgiadapter import WSGIAdapter
-import requests
 
 VIDEO_TITLE = "A Brand New Video"
 VIDEO_INVENTORY = 1
@@ -31,10 +27,6 @@ def app():
 
     with app.app_context():
         db.drop_all()
-
-@pytest.fixture
-def app_requests_session(app):
-    requests_session.mount(SERVICE_URI, WSGIAdapter(app))
 
 @pytest.fixture
 def client(app):
@@ -163,13 +155,3 @@ def customer_three_video_three(app, client, third_customer, five_copies_video):
         "customer_id": 3,
         "video_id": 1
     })
-
-@pytest.fixture
-def customer_with_overdue(app, client, one_customer, five_copies_video):
-    response = client.post("/rentals/check-out", json={
-        "customer_id": 1,
-        "video_id": 1,
-        "due_date" : "2023-01-01"
-    }) 
-
-    
