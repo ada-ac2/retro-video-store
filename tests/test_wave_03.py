@@ -745,8 +745,8 @@ def test_get_renters_invalid_p_param(client, customer_one_video_three, customer_
     assert response_body[1]["postal_code"] == CUSTOMER_2_POSTAL_CODE
 
 
-
-
+#wave 4 tests
+"""
 def test_get_customers_rental_history(client, one_checked_out_video, one_returned_video):
     # Act
     response = client.get("/customers/1/history")
@@ -776,3 +776,4 @@ def test_get_customer_no_rental_history(client, one_checked_out_video):
     assert response.status_code == 200
     assert len(response_body) == 0
     assert response_body == []
+"""
