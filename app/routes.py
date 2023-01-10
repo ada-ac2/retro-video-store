@@ -328,14 +328,11 @@ def read_customer_rentals(customer_id):
         video_query = sort_helper(Video,video_query,attribute)
 
     # validating count and page_num
-    if not count and not page_num:
-        video_rentals = video_query
-    else:
-        video_rentals = pageination_helper(Video,video_query,count,page_num).items
+    #video_rentals = pageination_helper(Video,video_query,count,page_num).items
     
     customer_rentals_response = []
 
-    for video in video_rentals:
+    for video in video_query:
 
         rental = Rental.query.filter_by(
             video_id=video.id,
