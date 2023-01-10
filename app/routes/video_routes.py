@@ -148,7 +148,7 @@ def get_videos_rental_history(video_id):
     history = list()
     
     for rental in rentals_query:
-        if rental.video_id == video.id and rental.status == "Checked out":
+        if rental.video_id == video.id:
             temp_dict = dict()
             customer = validate_model(Customer, rental.customer_id)
             temp_dict["customer_id"] = customer.id
@@ -156,6 +156,7 @@ def get_videos_rental_history(video_id):
             temp_dict["postal_code"] = customer.postal_code
             temp_dict["checkout_date"] = rental.due_date - timedelta(days=7)
             temp_dict["due_date"] = rental.due_date
+            temp_dict["status"] = rental.status
             history.append(temp_dict)
     
     return jsonify(history)
