@@ -30,6 +30,7 @@ def test_get_videos_one_saved_video(client, one_video):
     # Act
     response = client.get("/videos")
     response_body = response.get_json()
+    print(response_body)
 
     # Assert
     assert response.status_code == 200
@@ -192,7 +193,7 @@ def test_update_video_invalid_data(client, one_video):
     })
 
     # Assert
-    assert response.status_code == 400
+    assert response.status_code == 400 
 
 
 # --------------------------------
