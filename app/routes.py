@@ -436,7 +436,7 @@ def videos_customer_checked_out(id):
     page_num_query = request.args.get("page_num")
 
     join_query = db.session.query(Video, Rental.due_date, Rental.checked_in).join(
-        Rental).filter(Rental.customer_id == customer.id)
+        Rental).filter(Rental.customer_id == customer.id, Rental.checked_in == False)
 
     if is_sort:
         join_query = sort_helper(Video, join_query, is_sort)
@@ -460,7 +460,7 @@ def customers_have_the_video_checked_out(id):
     page_num_query = request.args.get("page_num")
 
     join_query = db.session.query(Customer, Rental.due_date, Rental.checked_in).join(
-        Rental).filter(Rental.video_id == video.id)
+        Rental).filter(Rental.video_id == video.id, Rental.checked_in == False)
     if is_sort:
         join_query = sort_helper(Customer, join_query, is_sort)
     else:
