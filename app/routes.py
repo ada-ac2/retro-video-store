@@ -337,9 +337,9 @@ def read_customer_rentals(customer_id):
         rental = Rental.query.filter_by(
             video_id=video.id,
             customer_id=customer.id
-        ).all()
+        ).first()
         
-        rental_due_date = rental[0].due_date
+        rental_due_date = rental.due_date
 
         customer_rentals_response.append({
             "release_date": video.release_date,
