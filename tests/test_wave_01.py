@@ -1,6 +1,7 @@
 from operator import contains
 from app.models.video import Video
 from app.models.customer import Customer
+from app.models.model_helpers import *
 
 VIDEO_TITLE = "A Brand New Video"
 VIDEO_ID = 1

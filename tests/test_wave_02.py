@@ -1,5 +1,6 @@
 from app.models.video import Video
 from app.models.customer import Customer
+from app.models.rental import Rental
 
 VIDEO_TITLE = "A Brand New Video"
 VIDEO_ID = 1
