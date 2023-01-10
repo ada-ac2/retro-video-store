@@ -25,11 +25,7 @@ def read_all_rentals():
     rental_query = Rental.query
     rentals_response = []
     for rental in rental_query:
-        rentals_response.append(
-            {
-                "id": rental.id
-            }
-        )
+        rentals_response.append(rental.to_dict())
     return jsonify(rentals_response)
 
 @rentals_bp.route("/check-out", methods=["POST"])
