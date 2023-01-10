@@ -2,12 +2,10 @@ import pytest
 from app import create_app
 from app.models.video import Video
 from app.models.customer import Customer
-from app.cli.__main__ import SERVICE_URI, requests_session
+from app.cli import SERVICE_URI, requests_session
 from app import db
-from datetime import datetime
 from flask.signals import request_finished
 from wsgiadapter import WSGIAdapter
-import requests
 
 VIDEO_TITLE = "A Brand New Video"
 VIDEO_INVENTORY = 1

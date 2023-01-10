@@ -1,6 +1,5 @@
 from typer.testing import CliRunner
-from tests.conftest import app_requests_session
-from app.cli.__main__ import cli
+from app.cli import cli
 import json
 
 runner = CliRunner()
