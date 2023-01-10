@@ -328,11 +328,9 @@ def read_customer_rentals(customer_id):
         video_query = sort_helper(Video,video_query,attribute)
 
     # validating count and page_num
-    if count or page_num:
-        video_rentals = pageination_helper(Video,video_query,count,page_num).items
-    else:
-        video_rentals = video_query
-        
+    video_rentals = pageination_helper(Video,video_query,count,page_num).items
+
+
     customer_rentals_response = []
 
     for video in video_rentals:
@@ -373,6 +371,7 @@ def read_video_rentals(video_id):
 
     # validating count and page_num
     customer_rentals = pageination_helper(Customer,customer_query,count,page_num).items
+
 
     video_rentals_response = []
 
