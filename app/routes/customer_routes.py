@@ -31,7 +31,6 @@ def display_all_customers():
     else:
         customer_query = customer_query.all() 
     # fill http response list
-    
     response = []
     for customer in customer_query:
         response.append(customer.to_dict())
