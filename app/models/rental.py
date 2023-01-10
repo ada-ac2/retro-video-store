@@ -16,7 +16,6 @@ class Rental(db.Model):
             "video_id": self.video_id,
             "due_date": self.due_date
         }
-
         return rental_dict
 
     @classmethod

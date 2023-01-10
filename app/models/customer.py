@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime, timedelta
+from datetime import datetime
 
 class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -32,7 +32,6 @@ class Customer(db.Model):
     def from_dict(cls, request_body):
         new_obj = cls(
             name = request_body["name"],
-            registered_at = request_body["registered_at"],
             postal_code = request_body["postal_code"],
             phone = request_body["phone"], 
             videos_checked_out_count = request_body["videos_checked_out_count"]
