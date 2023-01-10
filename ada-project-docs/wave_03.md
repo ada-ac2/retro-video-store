@@ -25,7 +25,6 @@ Things to note:
   - Customers can be sorted by `name`, `registered_at` and `postal_code`
   - Videos can be sorted by `title` and `release_date`
 - If the client requests both sorting and pagination, pagination should be relative to the sorted order
-- Check out the [paginate method](https://flask-sqlalchemy.palletsprojects.com/en/2.x/api/#flask_sqlalchemy.BaseQuery.paginate)
   - The paginate method reteurns a [Pagination object](https://flask-sqlalchemy.palletsprojects.com/en/2.x/api/#flask_sqlalchemy.Pagination)
   - To access records from a Pagination object, consider using the `items` attribute
   - See [this article from DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-query-tables-and-paginate-data-in-flask-sqlalchemy) for a more detailed look at paginating data using SQLAlchemy 
