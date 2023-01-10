@@ -1,5 +1,13 @@
 from app.models.rental import Rental
+import pytest
 
+@pytest.fixture
+def customer_with_overdue(app, client, one_customer, five_copies_video):
+    response = client.post("/rentals/check-out", json={
+        "customer_id": 1,
+        "video_id": 1,
+        "due_date" : "2023-01-01"
+    })
 
 def test_rental_over_due(client, customer_with_overdue):
     response = client.get("/rentals/overdue")
