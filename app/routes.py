@@ -10,185 +10,6 @@ customers_bp = Blueprint("customers_bp", __name__, url_prefix="/customers")
 videos_bp = Blueprint("videos_bp", __name__, url_prefix="/videos")
 rental_bp = Blueprint("rental_bp", __name__, url_prefix="/rentals")
 
-# ----------------------------------------------------------------------------------------------------------
-# -------------------------------------------- Helper Functions --------------------------------------------
-# ----------------------------------------------------------------------------------------------------------
-def sort_helper(cls, query, is_sort):
-    atrribute = None
-    sort_method = is_sort
-    # Handle multiple sort attributes, use case: sort=attribute_1:asc, sort=attribute_2:asc
-    sort_query_param = is_sort.split(",") if is_sort.split(",") else is_sort
-
-    for query_param in sort_query_param:
-        split_query_param = query_param.split(
-            ":")  # Use case: ?sort=attribute:asc
-        if len(split_query_param) == 2:
-            attribute = split_query_param[0]
-            sort_method = split_query_param[1]
-        else:  # Client did not specify sort method
-            attribute = split_query_param[0]
-
-    return sort_attribute_helper(cls, query, attribute, sort_method)
-
-
-def sort_attribute_helper(cls, query, atr=None, sort_method="asc"):
-    if atr:
-        if atr == "name":
-            if sort_method == "desc":
-                query = query.order_by(cls.name.desc())
-            else:
-                query = query.order_by(cls.name.asc())
-        elif atr == "id":
-            if sort_method == "desc":
-                query = query.order_by(cls.id.desc())
-            else:
-                query = query.order_by(cls.id.asc())
-        elif atr == "registered_at":
-            if sort_method == "desc":
-                query = query.order_by(cls.registered_at.desc())
-            else:
-                query = query.order_by(cls.registered_at.asc())
-        elif atr == "postal_code":
-            if sort_method == "desc":
-                query = query.order_by(cls.postal_code.desc())
-            else:
-                query = query.order_by(cls.postal_code.asc())
-        elif atr == "title":
-            if sort_method == "desc":
-                query = query.order_by(cls.title.desc())
-            else:
-                query = query.order_by(cls.title.asc())
-        elif atr == "release_date":
-            if sort_method == "desc":
-                query = query.order_by(cls.release_date.desc())
-            else:
-                query = query.order_by(cls.release_date.asc())
-
-    elif sort_method == "desc":
-        query = query.order_by(cls.id.desc())
-    else:
-        # Sort by id in ascending order by default
-        query = query.order_by(cls.id.asc())
-
-    return query
-
-def pagination_helper(page_num_query, count_query, query, get_record_function):
-    if page_num_query and count_query and page_num_query.isnumeric() and count_query.isnumeric():
-        query = query.paginate(
-            page=int(page_num_query), per_page=int(count_query))
-        response = get_record_function(
-            query.items)
-    elif count_query and count_query.isnumeric() and (not page_num_query or not page_num_query.isnumeric()):
-        query = query.paginate(page=1, per_page=int(count_query))
-        response = get_record_function(
-            query.items)
-    else:
-        query = query.all()
-        response = get_record_function(query)
-
-    return response
-
-def validate_model(cls, model_id):
-    try:
-        model_id = int(model_id)
-    except:
-        abort(make_response({"message": f"{model_id} invalid"}, 400))
-    model = cls.query.get(model_id)
-    if model:
-        return model
-
-    abort(make_response(
-        {"message": f"{cls.__name__} {model_id} was not found"}, 404))
-
-
-def get_all_customer_helper(customer_list):
-    customers_response = []
-    for customer in customer_list:
-        customers_response.append(customer.to_dict())
-    return customers_response
-
-
-def get_all_rental_videos_helpers(videos_list):
-    video_response = []
-    for video in videos_list:
-        video_response.append(
-            {
-                "release_date": video.Video.release_date,
-                "id": video.Video.id,
-                "total_inventory": video.Video.total_inventory,
-                "title": video.Video.title,
-                "due_date": video.due_date,
-                "checked_in": video.checked_in
-            })
-    return video_response
-
-
-def get_all_videos_rental_customers_helper(customer_list):
-    customer_response = []
-    for customer in customer_list:
-        customer_response.append(
-            {
-                "due_date": customer.due_date,
-                "name": customer.Customer.name,
-                "phone": customer.Customer.phone,
-                "postal_code": customer.Customer.postal_code,
-                "id": customer.Customer.id,
-                "checked_in": customer.checked_in
-            }
-        )
-    return customer_response
-
-
-def get_all_overdue_helper(overdue_list):
-    overdue_response = []
-    for overdue in overdue_list:
-        overdue_response.append(
-            {
-                "video_id": overdue.id,
-                "title": overdue.title,
-                "postal_code": overdue.postal_code,
-                "checkout_date": overdue.checkout_date,
-                "due_date": overdue.due_date
-            }
-        )
-
-    return overdue_response
-
-
-def get_all_videos_helper(videos_list):
-    response = []
-    for video in videos_list:
-        response.append(video.to_dict())
-
-    return response
-
-
-def get_customer_rental_history_helper(history_records):
-    response = []
-    for record in history_records:
-        response.append(
-            {
-                "title": record.title,
-                "checkout_date": record.checkout_date,
-                "due_date": record.due_date
-            }
-        )
-    return response
-
-
-def get_video_rental_history_helper(history_records):
-    response = []
-    for record in history_records:
-        response.append(
-            {
-                "customer_id": record.id,
-                "name": record.name,
-                "postal_code": record.postal_code,
-                "checkout_date": record.checkout_date,
-                "due_date": record.due_date
-            }
-        )
-    return response
 
 # ----------------------------------------------------------------------------------------------------------
 # -------------------------------------------- Routes ------------------------------------------------------
@@ -531,3 +352,187 @@ def get_video_rental_history(id):
         page_num_query, count_query, history_query, get_video_rental_history_helper)
 
     return make_response(jsonify(history_response), 200)
+
+# ----------------------------------------------------------------------------------------------------------
+# -------------------------------------------- Helper Functions --------------------------------------------
+# ----------------------------------------------------------------------------------------------------------
+
+
+def sort_helper(cls, query, is_sort):
+    atrribute = None
+    sort_method = is_sort
+    # Handle multiple sort attributes, use case: sort=attribute_1:asc, sort=attribute_2:asc
+    sort_query_param = is_sort.split(",") if is_sort.split(",") else is_sort
+
+    for query_param in sort_query_param:
+        split_query_param = query_param.split(
+            ":")  # Use case: ?sort=attribute:asc
+        if len(split_query_param) == 2:
+            attribute = split_query_param[0]
+            sort_method = split_query_param[1]
+        else:  # Client did not specify sort method
+            attribute = split_query_param[0]
+
+    return sort_attribute_helper(cls, query, attribute, sort_method)
+
+
+def sort_attribute_helper(cls, query, atr=None, sort_method="asc"):
+    if atr:
+        if atr == "name":
+            if sort_method == "desc":
+                query = query.order_by(cls.name.desc())
+            else:
+                query = query.order_by(cls.name.asc())
+        elif atr == "id":
+            if sort_method == "desc":
+                query = query.order_by(cls.id.desc())
+            else:
+                query = query.order_by(cls.id.asc())
+        elif atr == "registered_at":
+            if sort_method == "desc":
+                query = query.order_by(cls.registered_at.desc())
+            else:
+                query = query.order_by(cls.registered_at.asc())
+        elif atr == "postal_code":
+            if sort_method == "desc":
+                query = query.order_by(cls.postal_code.desc())
+            else:
+                query = query.order_by(cls.postal_code.asc())
+        elif atr == "title":
+            if sort_method == "desc":
+                query = query.order_by(cls.title.desc())
+            else:
+                query = query.order_by(cls.title.asc())
+        elif atr == "release_date":
+            if sort_method == "desc":
+                query = query.order_by(cls.release_date.desc())
+            else:
+                query = query.order_by(cls.release_date.asc())
+
+    elif sort_method == "desc":
+        query = query.order_by(cls.id.desc())
+    else:
+        # Sort by id in ascending order by default
+        query = query.order_by(cls.id.asc())
+
+    return query
+
+
+def pagination_helper(page_num_query, count_query, query, get_record_function):
+    if page_num_query and count_query and page_num_query.isnumeric() and count_query.isnumeric():
+        query = query.paginate(
+            page=int(page_num_query), per_page=int(count_query))
+        response = get_record_function(
+            query.items)
+    elif count_query and count_query.isnumeric() and (not page_num_query or not page_num_query.isnumeric()):
+        query = query.paginate(page=1, per_page=int(count_query))
+        response = get_record_function(
+            query.items)
+    else:
+        query = query.all()
+        response = get_record_function(query)
+
+    return response
+
+
+def validate_model(cls, model_id):
+    try:
+        model_id = int(model_id)
+    except:
+        abort(make_response({"message": f"{model_id} invalid"}, 400))
+    model = cls.query.get(model_id)
+    if model:
+        return model
+
+    abort(make_response(
+        {"message": f"{cls.__name__} {model_id} was not found"}, 404))
+
+
+def get_all_customer_helper(customer_list):
+    customers_response = []
+    for customer in customer_list:
+        customers_response.append(customer.to_dict())
+    return customers_response
+
+
+def get_all_rental_videos_helpers(videos_list):
+    video_response = []
+    for video in videos_list:
+        video_response.append(
+            {
+                "release_date": video.Video.release_date,
+                "id": video.Video.id,
+                "total_inventory": video.Video.total_inventory,
+                "title": video.Video.title,
+                "due_date": video.due_date,
+                "checked_in": video.checked_in
+            })
+    return video_response
+
+
+def get_all_videos_rental_customers_helper(customer_list):
+    customer_response = []
+    for customer in customer_list:
+        customer_response.append(
+            {
+                "due_date": customer.due_date,
+                "name": customer.Customer.name,
+                "phone": customer.Customer.phone,
+                "postal_code": customer.Customer.postal_code,
+                "id": customer.Customer.id,
+                "checked_in": customer.checked_in
+            }
+        )
+    return customer_response
+
+
+def get_all_overdue_helper(overdue_list):
+    overdue_response = []
+    for overdue in overdue_list:
+        overdue_response.append(
+            {
+                "video_id": overdue.id,
+                "title": overdue.title,
+                "postal_code": overdue.postal_code,
+                "checkout_date": overdue.checkout_date,
+                "due_date": overdue.due_date
+            }
+        )
+
+    return overdue_response
+
+
+def get_all_videos_helper(videos_list):
+    response = []
+    for video in videos_list:
+        response.append(video.to_dict())
+
+    return response
+
+
+def get_customer_rental_history_helper(history_records):
+    response = []
+    for record in history_records:
+        response.append(
+            {
+                "title": record.title,
+                "checkout_date": record.checkout_date,
+                "due_date": record.due_date
+            }
+        )
+    return response
+
+
+def get_video_rental_history_helper(history_records):
+    response = []
+    for record in history_records:
+        response.append(
+            {
+                "customer_id": record.id,
+                "name": record.name,
+                "postal_code": record.postal_code,
+                "checkout_date": record.checkout_date,
+                "due_date": record.due_date
+            }
+        )
+    return response
