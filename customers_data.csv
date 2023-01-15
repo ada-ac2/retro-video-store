@@ -1,0 +1,18 @@
+{
+    "name": "Tom",
+    "postal_code": "98007",
+    "phone": "(123)456-7890",
+    "videos_checked_out_count": 0
+}
+{
+    "name": "Jack",
+    "postal_code": "86789",
+    "phone": "(123)100-7890",
+    "videos_checked_out_count": 0
+}
+{
+    "name": "Molly",
+    "postal_code": "56789",
+    "phone": "(375)456-7890",
+    "videos_checked_out_count": 0
+}
