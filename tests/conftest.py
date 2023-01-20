@@ -3,7 +3,6 @@ from app import create_app
 from app.models.video import Video
 from app.models.customer import Customer
 from app import db
-from datetime import datetime
 from flask.signals import request_finished
 
 VIDEO_TITLE = "A Brand New Video"
@@ -28,7 +27,6 @@ def app():
 
     with app.app_context():
         db.drop_all()
-
 
 @pytest.fixture
 def client(app):
@@ -157,5 +155,3 @@ def customer_three_video_three(app, client, third_customer, five_copies_video):
         "customer_id": 3,
         "video_id": 1
     })
-
-

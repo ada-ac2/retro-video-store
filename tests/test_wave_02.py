@@ -12,14 +12,12 @@ CUSTOMER_POSTAL_CODE = "12345"
 CUSTOMER_PHONE = "123-123-1234"
 
 def test_checkout_video(client, one_video, one_customer):
-
     response = client.post("/rentals/check-out", json={
         "customer_id": 1,
         "video_id": 1
     })
 
     response_body = response.get_json()
-
 
     assert response.status_code == 200
     assert response_body["video_id"] == 1
