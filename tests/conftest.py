@@ -158,4 +158,3 @@ def customer_three_video_three(app, client, third_customer, five_copies_video):
         "video_id": 1
     })
 
-
